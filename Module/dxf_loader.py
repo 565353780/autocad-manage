@@ -4,36 +4,74 @@
 import os
 import ezdxf
 
-from Data.point import Point
-from Data.line import Line
+from Data.shape import Point, Line, Circle
 
 class DXFLoader(object):
     def __init__(self):
         self.doc = None
 
         self.msp = None
-        self.layout_names = None
-        self.line_list = None
+        self.layout_names = []
+        self.line_list = []
+        self.circle_list = []
         return
 
     def reset(self):
         self.doc = None
         self.msp = None
-        self.layout_names = None
-        self.line_list = None
+        self.layout_names = []
+        self.line_list = []
+        self.circle_list = []
         return True
 
-    def loadEntity(self, entity):
+    def loadLineEntity(self, entity):
         dxf = entity.dxf
         dxftype = entity.dxftype()
 
+        if dxftype != "LINE":
+            print("[ERROR][DXFLoader::loadLineEntity]")
+            print("\t this entity is a [" + dxftype + "], not a LINE!")
+            return False
+
+        start = dxf.start
+        end = dxf.end
+        new_line = Line(Point(start[0], start[1], start[2]),
+                        Point(end[0], end[1], end[2]))
+        self.line_list.append(new_line)
+        return True
+
+    def loadCircleEntity(self, entity):
+        dxf = entity.dxf
+        dxftype = entity.dxftype()
+
+        if dxftype != "CIRCLE":
+            print("[ERROR][DXFLoader::loadCircleEntity]")
+            print("\t this entity is a [" + dxftype + "], not a CIRCLE!")
+            return False
+
+        center = dxf.center
+        radius = dxf.radius
+        new_circle = Circle(Point(center[0], center[1], center[2]), radius)
+        self.circle_list.append(new_circle)
+        return True
+
+    def loadEntity(self, entity):
+        dxftype = entity.dxftype()
+
         if dxftype == "LINE":
-            start = dxf.start
-            end = dxf.end
-            new_line = Line(Point(start[0], start[1], start[2]),
-                            Point(end[0], end[1], end[2]))
-            self.line_list.append(new_line)
+            if not self.loadLineEntity(entity):
+                print("[ERROR][DXFLoader::loadEntity]")
+                print("\t loadLineEntity failed!")
+                return False
             return True
+
+        if dxftype == "CIRCLE":
+            if not self.loadCircleEntity(entity):
+                print("[ERROR][DXFLoader::loadEntity]")
+                print("\t loadCircleEntity failed!")
+                return False
+            return True
+
         print("[WARN][DXFLoader::loadEntity]")
         print("\t load algo for [" + dxftype + "] not defined!")
         return False
@@ -57,7 +95,6 @@ class DXFLoader(object):
         self.doc = ezdxf.readfile(dxf_file_path)
         self.msp = self.doc.modelspace()
         self.layout_names = self.doc.layout_names()
-        self.line_list = []
 
         if not self.loadAllEntity():
             print("[ERROR][DXFLoader::loadFile]")
@@ -114,23 +151,27 @@ class DXFLoader(object):
             break
         return True
 
+    def outputInfo(self):
+        print("====entity====")
+        self.outputEntity()
+
+        print("====layout====")
+        self.outputLayout()
+
+        print("====query====")
+        self.outputQuery()
+
+        print("====block====")
+        self.outputBlock()
+        return True
+
 def demo():
     dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
 
     dxf_loader = DXFLoader()
     dxf_loader.loadFile(dxf_file_path)
 
-    print("====entity====")
-    dxf_loader.outputEntity()
-
-    print("====layout====")
-    dxf_loader.outputLayout()
-
-    print("====query====")
-    dxf_loader.outputQuery()
-
-    print("====block====")
-    dxf_loader.outputBlock()
+    #  dxf_loader.outputInfo()
     return True
 
 if __name__ == "__main__":

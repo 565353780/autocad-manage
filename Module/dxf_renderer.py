@@ -8,7 +8,7 @@ from Module.dxf_loader import DXFLoader
 
 class DXFRenderer(DXFLoader):
     def __init__(self):
-        super.__init__(self)
+        super(DXFRenderer, self).__init__()
         return
 
     def render(self):
@@ -19,19 +19,9 @@ def demo():
 
     dxf_renderer = DXFRenderer()
     dxf_renderer.loadFile(dxf_file_path)
+    dxf_renderer.render()
 
-    print("====entity====")
-    dxf_renderer.loadAllEntity()
-    dxf_renderer.getEntity()
-
-    print("====layout====")
-    dxf_renderer.getLayout()
-
-    print("====query====")
-    dxf_renderer.getQuery()
-
-    print("====block====")
-    dxf_renderer.getBlock()
+    #  dxf_renderer.outputInfo()
     return True
 
 if __name__ == "__main__":
