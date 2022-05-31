@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from Data.bbox import BBox
+
 class Circle(object):
     def __init__(self, center, radius):
         self.center = center
         self.radius = radius
 
-        self.bbox = [0, 0, 0, 0, 0, 0]
+        self.bbox = BBox()
         self.updateBBox()
         return
 
@@ -18,6 +20,8 @@ class Circle(object):
         y_max = self.center.y + self.radius
         z_max = self.center.z + self.radius
 
-        self.bbox = [x_min, y_min, z_min, x_max, y_max, z_max]
+        if not self.bbox.updateBBox(x_min, y_min, z_min, x_max, y_max, z_max):
+            print("[ERROR][Line::updateBBox]")
+            print("\t updateBBox failed!")
         return True
 

@@ -4,7 +4,7 @@
 import os
 import ezdxf
 
-from Data.shape import Point, Line, Circle
+from Data.shape import Point, Line, Circle, BBox
 
 class DXFLoader(object):
     def __init__(self):
@@ -14,6 +14,7 @@ class DXFLoader(object):
         self.layout_names = []
         self.line_list = []
         self.circle_list = []
+        self.bbox = BBox()
         return
 
     def reset(self):
@@ -84,6 +85,22 @@ class DXFLoader(object):
                 continue
         return True
 
+    def updateBBox(self):
+        self.bbox.reset()
+
+        for line in self.line_list:
+            if not self.bbox.addBBoxPosition(line.bbox):
+                print("[ERROR][DXFLoader::updateBBox]")
+                print("\t addBBoxPosition for line failed!")
+                return False
+
+        for circle in self.circle_list:
+            if not self.bbox.addBBoxPosition(circle.bbox):
+                print("[ERROR][DXFLoader::updateBBox]")
+                print("\t addBBoxPosition for circle failed!")
+                return False
+        return True
+
     def loadFile(self, dxf_file_path):
         self.reset()
 
@@ -99,6 +116,11 @@ class DXFLoader(object):
         if not self.loadAllEntity():
             print("[ERROR][DXFLoader::loadFile]")
             print("\t loadAllEntity failed!")
+            return False
+
+        if not self.updateBBox():
+            print("[ERROR][DXFLoader::loadFile]")
+            print("\t updateBBox failed!")
             return False
         return True
 

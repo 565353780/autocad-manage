@@ -4,4 +4,5 @@
 from Data.point import Point
 from Data.line import Line
 from Data.circle import Circle
+from Data.bbox import BBox
 

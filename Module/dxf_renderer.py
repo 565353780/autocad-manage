@@ -1,24 +1,83 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import cv2
+
+from Data.shape import Point
 
 from Module.dxf_loader import DXFLoader
 
 class DXFRenderer(DXFLoader):
     def __init__(self):
         super(DXFRenderer, self).__init__()
+
+        self.image_width = None
+        self.image_height = None
+
+        self.trans_point = None
+        self.scale = None
+
+        self.render_image_width = None
+        self.render_image_height = None
+
+        self.line_color = [0, 255, 0]
+        self.circle_color = [0, 255, 255]
         return
 
+    def setImageSize(self, image_width, image_height):
+        self.image_width = image_width
+        self.image_height = image_height
+        return True
+
+    def updateImageTrans(self):
+        min_point = self.bbox.min_point
+        self.trans_point = Point(-min_point.x, -min_point.y, -min_point.z)
+
+        self.scale = float("inf")
+        diff_point = self.bbox.diff_point
+        if diff_point.x > 0:
+            self.scale = min(self.scale, 1.0 * self.image_width / diff_point.x)
+        if diff_point.y > 0:
+            self.scale = min(self.scale, 1.0 * self.image_height / diff_point.y)
+
+        if self.scale == float("inf"):
+            self.scale = 1.0
+
+        self.render_image_width = int(diff_point.x * self.scale)
+        self.render_image_height = int(diff_point.y * self.scale)
+        return True
+
+    def getImagePosition(self, world_potision):
+        image_position = Point(
+            int((world_potision.x + self.trans_point.x) * self.scale),
+            int((world_potision.y + self.trans_point.y) * self.scale),
+            int((world_potision.z + self.trans_point.z) * self.scale))
+        return image_position
+
+    def getWorldPosition(self, image_position):
+        world_potision = Point(
+            1.0 * image_position.x / self.scale - self.trans_point.x,
+            1.0 * image_position.y / self.scale - self.trans_point.y,
+            1.0 * image_position.z / self.scale - self.trans_point.z)
+        return world_potision
+
     def render(self):
+        self.updateImageTrans()
+
+        print(self.render_image_width, self.render_image_height)
+        self.getImagePosition(self.bbox.min_point).outputInfo(0)
+        self.getImagePosition(self.bbox.max_point).outputInfo(0)
+
         return True
 
 def demo():
     dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
+    image_width = 1600
+    image_height = 900
 
     dxf_renderer = DXFRenderer()
     dxf_renderer.loadFile(dxf_file_path)
+    dxf_renderer.setImageSize(image_width, image_height)
     dxf_renderer.render()
 
     #  dxf_renderer.outputInfo()

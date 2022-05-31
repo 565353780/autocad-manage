@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from Data.point import Point
+from Data.bbox import BBox
+
 class Line(object):
-    def __init__(self, start_point, end_point):
+    def __init__(self, start_point=Point(), end_point=Point()):
         self.start_point = start_point
         self.end_point = end_point
 
-        self.bbox = [0, 0, 0, 0, 0, 0]
+        self.bbox = BBox()
         self.updateBBox()
         return
 
@@ -18,6 +21,8 @@ class Line(object):
         y_max = max(self.start_point.y, self.end_point.y)
         z_max = max(self.start_point.z, self.end_point.z)
 
-        self.bbox = [x_min, y_min, z_min, x_max, y_max, z_max]
+        if not self.bbox.updateBBox(x_min, y_min, z_min, x_max, y_max, z_max):
+            print("[ERROR][Line::updateBBox]")
+            print("\t updateBBox failed!")
         return True
 
