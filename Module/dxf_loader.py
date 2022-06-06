@@ -15,6 +15,7 @@ class DXFLoader(object):
         self.line_list = []
         self.circle_list = []
         self.bbox = BBox()
+        self.undefined_entity_type_list = []
         return
 
     def reset(self):
@@ -23,6 +24,8 @@ class DXFLoader(object):
         self.layout_names = []
         self.line_list = []
         self.circle_list = []
+        self.bbox = BBox()
+        self.undefined_entity_type_list = []
         return True
 
     def loadLineEntity(self, entity):
@@ -56,6 +59,72 @@ class DXFLoader(object):
         self.circle_list.append(new_circle)
         return True
 
+    def loadLWPolyLineEntity(self, entity):
+        dxftype = entity.dxftype()
+
+        if dxftype != "LWPOLYLINE":
+            print("[ERROR][DXFLoader::loadLWPolyLineEntity]")
+            print("\t this entity is a [" + dxftype + "], not a LWPOLYLINE!")
+            return False
+
+        for virtual_entity in entity.virtual_entities():
+            virtual_dxftype = virtual_entity.dxftype()
+
+            if virtual_dxftype == "LINE":
+                if not self.loadLineEntity(virtual_entity):
+                    print("[ERROR][DXFLoader::loadLWPolyLineEntity]")
+                    print("\t this entity is a [" + dxftype + "], not a LINE!")
+                    return False
+                continue
+
+            if virtual_dxftype == "CIRCLE":
+                if not self.loadCircleEntity(virtual_entity):
+                    print("[ERROR][DXFLoader::loadLWPolyLineEntity]")
+                    print("\t this entity is a [" + dxftype + "], not a CIRCLE!")
+                    return False
+                continue
+
+            if dxftype in self.undefined_entity_type_list:
+                continue
+
+            self.undefined_entity_type_list.append(dxftype)
+            print("[ERROR][DXFLoader::loadLWPolyLineEntity]")
+            print("\t load algo for [" + dxftype + "] not defined!")
+        return True
+
+    def loadInsertEntity(self, entity):
+        dxftype = entity.dxftype()
+
+        if dxftype != "INSERT":
+            print("[ERROR][DXFLoader::loadInsertEntity]")
+            print("\t this entity is a [" + dxftype + "], not a INSERT!")
+            return False
+
+        for virtual_entity in entity.virtual_entities():
+            virtual_dxftype = virtual_entity.dxftype()
+
+            if virtual_dxftype == "LINE":
+                if not self.loadLineEntity(virtual_entity):
+                    print("[ERROR][DXFLoader::loadInsertEntity]")
+                    print("\t this entity is a [" + dxftype + "], not a LINE!")
+                    return False
+                continue
+
+            if virtual_dxftype == "CIRCLE":
+                if not self.loadCircleEntity(virtual_entity):
+                    print("[ERROR][DXFLoader::loadInsertEntity]")
+                    print("\t this entity is a [" + dxftype + "], not a CIRCLE!")
+                    return False
+                continue
+
+            if dxftype in self.undefined_entity_type_list:
+                continue
+
+            self.undefined_entity_type_list.append(dxftype)
+            print("[ERROR][DXFLoader::loadInsertEntity]")
+            print("\t load algo for [" + dxftype + "] not defined!")
+        return True
+
     def loadEntity(self, entity):
         dxftype = entity.dxftype()
 
@@ -73,6 +142,24 @@ class DXFLoader(object):
                 return False
             return True
 
+        if dxftype == "LWPOLYLINE":
+            if not self.loadLWPolyLineEntity(entity):
+                print("[ERROR][DXFLoader::loadEntity]")
+                print("\t loadLWPolyLineEntity failed!")
+                return False
+            return True
+
+        if dxftype == "INSERT":
+            if not self.loadInsertEntity(entity):
+                print("[ERROR][DXFLoader::loadEntity]")
+                print("\t loadInsertEntity failed!")
+                return False
+            return True
+
+        if dxftype in self.undefined_entity_type_list:
+            return False
+
+        self.undefined_entity_type_list.append(dxftype)
         print("[WARN][DXFLoader::loadEntity]")
         print("\t load algo for [" + dxftype + "] not defined!")
         return False
@@ -80,8 +167,8 @@ class DXFLoader(object):
     def loadAllEntity(self):
         for entity in self.msp:
             if not self.loadEntity(entity):
-                print("[WARN][DXFLoader::loadAllEntity]")
-                print("\t loadEntity failed!")
+                #  print("[WARN][DXFLoader::loadAllEntity]")
+                #  print("\t loadEntity failed!")
                 continue
         return True
 
@@ -124,36 +211,54 @@ class DXFLoader(object):
             return False
         return True
 
-    def print_entity(self, entity):
-        print()
+    def print_entity(self, entity, debug=False):
+        if not debug:
+            print()
 
         dxf = entity.dxf
         dxftype = entity.dxftype()
 
-        print("dxftype =", dxftype)
-        print("layer =", dxf.layer)
-        print("color =", dxf.color)
+        if not debug:
+            print("dxftype =", dxftype)
+            print("layer =", dxf.layer)
+            print("color =", dxf.color)
 
         if dxftype == "LINE":
+            if debug:
+                return True
             print("start:", dxf.start)
             print("end:", dxf.end)
             return True
         if dxftype == "CIRCLE":
+            if debug:
+                return True
             print("center =", dxf.center)
             print("radius =", dxf.radius)
             return True
+        if dxftype == "LWPOLYLINE":
+            for entity in entity.virtual_entities():
+                self.print_entity(entity, debug)
+        if dxftype == "INSERT":
+            for entity in entity.virtual_entities():
+                self.print_entity(entity, debug)
 
+        if dxftype in self.undefined_entity_type_list:
+            return False
+
+        self.undefined_entity_type_list.append(dxftype)
         print("[WARN][demo::print_entity]")
-        print("print algo for this type not exist!")
+        print("print algo for this type [" + dxftype + "] not exist!")
         return False
 
     def outputEntity(self):
         print("entity num =", len(self.msp))
-        for entity in self.msp:
-            self.print_entity(entity)
+
+        #  for entity in self.msp:
+            #  self.print_entity(entity)
 
         #  for entity in self.msp.query("LINE"):
-            #  print_entity(entity)
+            #  self.print_entity(entity, True)
+
         return True
 
     def outputLayout(self):
@@ -193,7 +298,7 @@ def demo():
     dxf_loader = DXFLoader()
     dxf_loader.loadFile(dxf_file_path)
 
-    #  dxf_loader.outputInfo()
+    dxf_loader.outputInfo()
     return True
 
 if __name__ == "__main__":

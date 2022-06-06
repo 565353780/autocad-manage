@@ -14,6 +14,7 @@ class DXFRenderer(DXFLoader):
 
         self.image_width = None
         self.image_height = None
+        self.free_width = None
 
         self.trans_point = None
         self.scale = None
@@ -27,9 +28,14 @@ class DXFRenderer(DXFLoader):
         self.image = None
         return
 
-    def setImageSize(self, image_width, image_height):
+    def setImageSize(self, image_width, image_height, free_width):
+        if image_width <= 2 * free_width or image_height <= 2 * free_width:
+            print("[ERROR][DXFRenderer::setImageSize]")
+            print("\t free_width out of range!")
+            return False
         self.image_width = image_width
         self.image_height = image_height
+        self.free_width = free_width
         return True
 
     def updateImageTrans(self):
@@ -37,31 +43,38 @@ class DXFRenderer(DXFLoader):
         self.trans_point = Point(-min_point.x, -min_point.y, -min_point.z)
 
         self.scale = float("inf")
+        render_scale = float("inf")
         diff_point = self.bbox.diff_point
         if diff_point.x > 0:
-            self.scale = min(self.scale, 1.0 * self.image_width / diff_point.x)
+            self.scale = min(self.scale,
+                             1.0 * (self.image_width - 2.0 * self.free_width) / diff_point.x)
+            render_scale = min(render_scale, 1.0 * self.image_width / diff_point.x)
         if diff_point.y > 0:
-            self.scale = min(self.scale, 1.0 * self.image_height / diff_point.y)
+            self.scale = min(self.scale,
+                             1.0 * (self.image_height - 2.0 * self.free_width) / diff_point.y)
+            render_scale = min(render_scale, 1.0 * self.image_height / diff_point.x)
 
         if self.scale == float("inf"):
             self.scale = 1.0
+        if render_scale == float("inf"):
+            render_scale = 1.0
 
-        self.render_image_width = int(diff_point.x * self.scale)
-        self.render_image_height = int(diff_point.y * self.scale)
+        self.render_image_width = int(diff_point.x * render_scale)
+        self.render_image_height = int(diff_point.y * render_scale)
         return True
 
     def getImagePosition(self, world_potision):
         image_position = Point(
-            int((world_potision.x + self.trans_point.x) * self.scale),
-            int((world_potision.y + self.trans_point.y) * self.scale),
-            int((world_potision.z + self.trans_point.z) * self.scale))
+            int(self.free_width + (world_potision.x + self.trans_point.x) * self.scale),
+            int(self.free_width + (world_potision.y + self.trans_point.y) * self.scale),
+            int(self.free_width + (world_potision.z + self.trans_point.z) * self.scale))
         return image_position
 
     def getWorldPosition(self, image_position):
         world_potision = Point(
-            1.0 * image_position.x / self.scale - self.trans_point.x,
-            1.0 * image_position.y / self.scale - self.trans_point.y,
-            1.0 * image_position.z / self.scale - self.trans_point.z)
+            1.0 * (image_position.x - self.free_width) / self.scale - self.trans_point.x,
+            1.0 * (image_position.y - self.free_width) / self.scale - self.trans_point.y,
+            1.0 * (image_position.z - self.free_width) / self.scale - self.trans_point.z)
         return world_potision
 
     def drawLine(self):
@@ -101,10 +114,11 @@ def demo():
     dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
     image_width = 1600
     image_height = 900
+    free_width = 50
 
     dxf_renderer = DXFRenderer()
     dxf_renderer.loadFile(dxf_file_path)
-    dxf_renderer.setImageSize(image_width, image_height)
+    dxf_renderer.setImageSize(image_width, image_height, free_width)
     dxf_renderer.render()
 
     #  dxf_renderer.outputInfo()
