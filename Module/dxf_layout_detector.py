@@ -36,17 +36,22 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawClusterLine(self):
+        line_idx = 0
         for lines in self.cluster_lines_list:
-            random_color = np.array([randint(0, 255),
-                                     randint(0, 255),
-                                     randint(0, 255)], dtype=np.float) / 255.0
+            random_color = [randint(0, 255),
+                            randint(0, 255),
+                            randint(0, 255)]
+            if line_idx == 0:
+                random_color = [255, 255, 255]
+            line_idx += 1
             for line in lines:
                 start_point_in_image = self.getImagePosition(line.start_point)
                 end_point_in_image = self.getImagePosition(line.end_point)
                 cv2.line(self.image,
                          (start_point_in_image.x, start_point_in_image.y),
                          (end_point_in_image.x, end_point_in_image.y),
-                         random_color, 1, 4)
+                         np.array(random_color, dtype=np.float) / 255.0,
+                         1, 4)
         return True
 
     def drawShape(self):
@@ -55,8 +60,8 @@ class DXFLayoutDetector(DXFRenderer):
 
 def demo():
     dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
-    image_width = 1600
-    image_height = 900
+    image_width = 1600 * 1.2
+    image_height = 900 * 1.2
     free_width = 50
     wait_key = 0
 

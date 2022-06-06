@@ -86,6 +86,32 @@ def isLineCrossLineList(new_line, line_list):
             return True
     return False
 
+def isLineListCross(line_list_1, line_list_2):
+    for line in line_list_1:
+        if isLineCrossLineList(line, line_list_2):
+            return True
+    return False
+
+def getMergeElementList(list_list, list_idx_1, list_idx_2):
+    if list_idx_1 >= len(list_list) or list_idx_2 > len(list_list):
+        print("[ERROR][cluster::getMergeElementList]")
+        print("\t list_idx out of range!")
+        return False
+
+    if list_idx_1 == list_idx_2:
+        print("[WARN][cluster::getMergeElementList]")
+        print("\t list_idx are same!")
+        return True
+
+    merge_list = list_list[list_idx_1] + list_list[list_idx_2]
+    new_list_list = [merge_list]
+
+    for i in range(len(list_list)):
+        if i == list_idx_1 or i == list_idx_2:
+            continue
+        new_list_list.append(list_list[i])
+    return new_list_list
+
 def cluster_compare(x, y):
     if len(x) < len(y):
         return 1
@@ -106,6 +132,22 @@ def clusterLine(line_list):
         if line_cross:
             continue
         cluster_lines_list.append([line])
+
+    cluster_result_updated = True
+    while cluster_result_updated:
+        if len(cluster_lines_list) < 2:
+            break
+
+        cluster_result_updated = False
+
+        for i in range(1, len(cluster_lines_list)):
+            for j in range(i):
+                if isLineListCross(cluster_lines_list[i], cluster_lines_list[j]):
+                    cluster_result_updated = True
+                    cluster_lines_list = getMergeElementList(cluster_lines_list, i, j)
+                    break
+            if cluster_result_updated:
+                break
 
     cluster_lines_list.sort(key=cmp_to_key(cluster_compare))
     return cluster_lines_list
