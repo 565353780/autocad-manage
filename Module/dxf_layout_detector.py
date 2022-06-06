@@ -74,7 +74,7 @@ def demo():
     dxf_layout_detector.clusterLines()
 
     dxf_layout_detector.setImageSize(image_width, image_height, free_width)
-    #  dxf_layout_detector.render(wait_key)
+    dxf_layout_detector.render(wait_key)
     return True
 
 if __name__ == "__main__":
