@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import cv2
+import numpy as np
 
-from Data.shape import Point
+from Data.shape import Point, Line, Circle
 
 from Module.dxf_loader import DXFLoader
 
@@ -22,6 +23,8 @@ class DXFRenderer(DXFLoader):
 
         self.line_color = [0, 255, 0]
         self.circle_color = [0, 255, 255]
+
+        self.image = None
         return
 
     def setImageSize(self, image_width, image_height):
@@ -61,13 +64,29 @@ class DXFRenderer(DXFLoader):
             1.0 * image_position.z / self.scale - self.trans_point.z)
         return world_potision
 
+    def drawLine(self):
+        for line in self.line_list:
+            start_point_in_image = self.getImagePosition(line.start_point)
+            end_point_in_image = self.getImagePosition(line.end_point)
+            cv2.line(self.image,
+                     (start_point_in_image.x, start_point_in_image.y),
+                     (end_point_in_image.x, end_point_in_image.y),
+                     self.line_color, 1, 4)
+        return True
+
+    def drawCircle(self):
+        return True
+
     def render(self):
         self.updateImageTrans()
 
-        print(self.render_image_width, self.render_image_height)
-        self.getImagePosition(self.bbox.min_point).outputInfo(0)
-        self.getImagePosition(self.bbox.max_point).outputInfo(0)
+        self.image = np.zeros((self.render_image_height, self.render_image_width, 3))
 
+        self.drawLine()
+        self.drawCircle()
+
+        cv2.imshow("DXFRenderer::render", self.image)
+        cv2.waitKey(0)
         return True
 
 def demo():
