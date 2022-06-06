@@ -4,7 +4,7 @@
 import cv2
 import numpy as np
 
-from Data.shape import Point, Line, Circle
+from Data.shape import Point
 
 from Module.dxf_loader import DXFLoader
 
