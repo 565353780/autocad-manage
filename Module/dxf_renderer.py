@@ -75,6 +75,14 @@ class DXFRenderer(DXFLoader):
         return True
 
     def drawCircle(self):
+        for circle in self.circle_list:
+            center_in_image = self.getImagePosition(circle.center)
+            radius_in_image = int(circle.radius * self.scale)
+            cv2.circle(self.image,
+                       (center_in_image.x, center_in_image.y),
+                       radius_in_image,
+                       self.circle_color,
+                       1, 8, 0)
         return True
 
     def render(self):
