@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from functools import cmp_to_key
+
 from Data.shape import Line
 
 def cross(point_1, point_2, point_3):
@@ -84,6 +86,13 @@ def isLineCrossLineList(new_line, line_list):
             return True
     return False
 
+def cluster_compare(x, y):
+    if len(x) < len(y):
+        return 1
+    if len(x) > len(y):
+        return -1
+    return 0
+
 def clusterLine(line_list):
     cluster_lines_list = []
 
@@ -97,5 +106,7 @@ def clusterLine(line_list):
         if line_cross:
             continue
         cluster_lines_list.append([line])
+
+    cluster_lines_list.sort(key=cmp_to_key(cluster_compare))
     return cluster_lines_list
 

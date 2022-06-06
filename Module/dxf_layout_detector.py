@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import cv2
+import numpy as np
+from random import randint
 
 from Method.cluster import clusterLine
 
@@ -34,18 +36,21 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawClusterLine(self):
-        for line in self.line_list:
-            start_point_in_image = self.getImagePosition(line.start_point)
-            end_point_in_image = self.getImagePosition(line.end_point)
-            cv2.line(self.image,
-                     (start_point_in_image.x, start_point_in_image.y),
-                     (end_point_in_image.x, end_point_in_image.y),
-                     self.line_color, 1, 4)
+        for lines in self.cluster_lines_list:
+            random_color = np.array([randint(0, 255),
+                                     randint(0, 255),
+                                     randint(0, 255)], dtype=np.float) / 255.0
+            for line in lines:
+                start_point_in_image = self.getImagePosition(line.start_point)
+                end_point_in_image = self.getImagePosition(line.end_point)
+                cv2.line(self.image,
+                         (start_point_in_image.x, start_point_in_image.y),
+                         (end_point_in_image.x, end_point_in_image.y),
+                         random_color, 1, 4)
         return True
 
     def drawShape(self):
         self.drawClusterLine()
-        print("use new drawShape!")
         return True
 
 def demo():

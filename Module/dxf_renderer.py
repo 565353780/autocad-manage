@@ -84,7 +84,8 @@ class DXFRenderer(DXFLoader):
             cv2.line(self.image,
                      (start_point_in_image.x, start_point_in_image.y),
                      (end_point_in_image.x, end_point_in_image.y),
-                     self.line_color, 1, 4)
+                     np.array(self.line_color, dtype=np.float) / 255.0,
+                     1, 4)
         return True
 
     def drawCircle(self):
@@ -94,7 +95,7 @@ class DXFRenderer(DXFLoader):
             cv2.circle(self.image,
                        (center_in_image.x, center_in_image.y),
                        radius_in_image,
-                       self.circle_color,
+                       n.array(self.circle_color, dtype=np.float) / 255.0,
                        1, 8, 0)
         return True
 
