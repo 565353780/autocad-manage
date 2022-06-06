@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 from random import randint
 
+from Data.shape import LineCluster
+
 from Method.cluster import clusterLine
 
 from Module.dxf_renderer import DXFRenderer
@@ -14,7 +16,7 @@ class DXFLayoutDetector(DXFRenderer):
         super(DXFLayoutDetector, self).__init__()
 
         self.valid_line_list = []
-        self.cluster_lines_list = []
+        self.line_cluster_list = []
         return
 
     def updateValidLineList(self):
@@ -32,19 +34,22 @@ class DXFLayoutDetector(DXFRenderer):
             print("\t updateValidLineList failed!")
             return False
 
-        self.cluster_lines_list = clusterLine(self.valid_line_list)
+        line_list_list = clusterLine(self.valid_line_list)
+        for line_list in line_list_list:
+            line_cluster = LineCluster(line_list)
+            self.line_cluster_list.append(line_cluster)
         return True
 
-    def drawClusterLine(self):
+    def drawLineCluster(self):
         draw_white = True
-        for lines in self.cluster_lines_list:
+        for line_cluster in self.line_cluster_list:
             random_color = [randint(0, 255),
                             randint(0, 255),
                             randint(0, 255)]
             if draw_white:
                 random_color = [255, 255, 255]
                 draw_white = False
-            for line in lines:
+            for line in line_cluster.line_list:
                 start_point_in_image = self.getImagePosition(line.start_point)
                 end_point_in_image = self.getImagePosition(line.end_point)
                 cv2.line(self.image,
@@ -55,7 +60,7 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
-        self.drawClusterLine()
+        self.drawLineCluster()
         return True
 
 def demo():
