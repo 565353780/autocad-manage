@@ -52,7 +52,7 @@ class DXFRenderer(DXFLoader):
         if diff_point.y > 0:
             self.scale = min(self.scale,
                              1.0 * (self.image_height - 2.0 * self.free_width) / diff_point.y)
-            render_scale = min(render_scale, 1.0 * self.image_height / diff_point.x)
+            render_scale = min(render_scale, 1.0 * self.image_height / diff_point.y)
 
         if self.scale == float("inf"):
             self.scale = 1.0
