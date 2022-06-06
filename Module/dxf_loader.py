@@ -143,6 +143,7 @@ class DXFLoader(object):
             return True
 
         if dxftype == "LWPOLYLINE":
+            print("found LWPOLYLINE")
             if not self.loadLWPolyLineEntity(entity):
                 print("[ERROR][DXFLoader::loadEntity]")
                 print("\t loadLWPolyLineEntity failed!")
@@ -250,11 +251,11 @@ class DXFLoader(object):
         print("print algo for this type [" + dxftype + "] not exist!")
         return False
 
-    def outputEntity(self):
+    def outputEntity(self, debug=False):
         print("entity num =", len(self.msp))
 
-        #  for entity in self.msp:
-            #  self.print_entity(entity)
+        for entity in self.msp:
+            self.print_entity(entity, debug)
 
         #  for entity in self.msp.query("LINE"):
             #  self.print_entity(entity, True)
@@ -278,9 +279,9 @@ class DXFLoader(object):
             break
         return True
 
-    def outputInfo(self):
+    def outputInfo(self, debug=False):
         print("====entity====")
-        self.outputEntity()
+        self.outputEntity(debug)
 
         print("====layout====")
         self.outputLayout()
@@ -294,11 +295,12 @@ class DXFLoader(object):
 
 def demo():
     dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
+    debug = True
 
     dxf_loader = DXFLoader()
     dxf_loader.loadFile(dxf_file_path)
 
-    dxf_loader.outputInfo()
+    dxf_loader.outputInfo(debug)
     return True
 
 if __name__ == "__main__":

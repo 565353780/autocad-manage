@@ -36,14 +36,14 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawClusterLine(self):
-        line_idx = 0
+        draw_white = True
         for lines in self.cluster_lines_list:
             random_color = [randint(0, 255),
                             randint(0, 255),
                             randint(0, 255)]
-            if line_idx == 0:
+            if draw_white:
                 random_color = [255, 255, 255]
-            line_idx += 1
+                draw_white = False
             for line in lines:
                 start_point_in_image = self.getImagePosition(line.start_point)
                 end_point_in_image = self.getImagePosition(line.end_point)
@@ -60,6 +60,7 @@ class DXFLayoutDetector(DXFRenderer):
 
 def demo():
     dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
+    debug = True
     image_width = 1600 * 1.2
     image_height = 900 * 1.2
     free_width = 50
@@ -68,12 +69,12 @@ def demo():
     dxf_layout_detector = DXFLayoutDetector()
     dxf_layout_detector.loadFile(dxf_file_path)
 
+    dxf_layout_detector.outputInfo(debug)
+
     dxf_layout_detector.clusterLines()
 
     dxf_layout_detector.setImageSize(image_width, image_height, free_width)
-    dxf_layout_detector.render(wait_key)
-
-    #  dxf_layout_detector.outputInfo()
+    #  dxf_layout_detector.render(wait_key)
     return True
 
 if __name__ == "__main__":

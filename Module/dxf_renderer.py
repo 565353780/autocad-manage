@@ -95,7 +95,7 @@ class DXFRenderer(DXFLoader):
             cv2.circle(self.image,
                        (center_in_image.x, center_in_image.y),
                        radius_in_image,
-                       n.array(self.circle_color, dtype=np.float) / 255.0,
+                       np.array(self.circle_color, dtype=np.float) / 255.0,
                        1, 8, 0)
         return True
 
@@ -119,6 +119,7 @@ class DXFRenderer(DXFLoader):
 
 def demo():
     dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
+    debug = True
     image_width = 1600
     image_height = 900
     free_width = 50
@@ -127,10 +128,10 @@ def demo():
     dxf_renderer = DXFRenderer()
     dxf_renderer.loadFile(dxf_file_path)
 
+    dxf_renderer.outputInfo(debug)
+
     dxf_renderer.setImageSize(image_width, image_height, free_width)
     dxf_renderer.render(wait_key)
-
-    #  dxf_renderer.outputInfo()
     return True
 
 if __name__ == "__main__":
