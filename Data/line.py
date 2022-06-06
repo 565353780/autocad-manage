@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from math import sqrt
+
 from Data.point import Point
 from Data.bbox import BBox
 
@@ -25,4 +27,15 @@ class Line(object):
             print("[ERROR][Line::updateBBox]")
             print("\t updateBBox failed!")
         return True
+
+    def getLength(self):
+        x_diff = self.end_point.x - self.start_point.x
+        y_diff = self.end_point.y - self.start_point.y
+        length2 = x_diff * x_diff + y_diff * y_diff
+        return sqrt(length2)
+
+    def isPoint(self):
+        if self.bbox.diff_point.x == 0 and self.bbox.diff_point.y == 0:
+            return True
+        return False
 

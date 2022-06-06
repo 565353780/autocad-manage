@@ -98,16 +98,22 @@ class DXFRenderer(DXFLoader):
                        1, 8, 0)
         return True
 
-    def render(self):
-        self.updateImageTrans()
-
-        self.image = np.zeros((self.render_image_height, self.render_image_width, 3))
-
+    def drawShape(self):
         self.drawLine()
         self.drawCircle()
+        return True
+
+    def render(self, wait_key=0):
+        self.updateImageTrans()
+        self.image = np.zeros((self.render_image_height, self.render_image_width, 3))
+
+        if not self.drawShape():
+            print("[ERROR][DXFRenderer::render]")
+            print("\t drawShape failed!")
+            return False
 
         cv2.imshow("DXFRenderer::render", self.image)
-        cv2.waitKey(0)
+        cv2.waitKey(wait_key)
         return True
 
 def demo():
@@ -115,11 +121,13 @@ def demo():
     image_width = 1600
     image_height = 900
     free_width = 50
+    wait_key = 0
 
     dxf_renderer = DXFRenderer()
     dxf_renderer.loadFile(dxf_file_path)
+
     dxf_renderer.setImageSize(image_width, image_height, free_width)
-    dxf_renderer.render()
+    dxf_renderer.render(wait_key)
 
     #  dxf_renderer.outputInfo()
     return True
