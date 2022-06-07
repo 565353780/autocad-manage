@@ -90,3 +90,10 @@ def isLineListCross(line_list_1, line_list_2):
             return True
     return False
 
+def getLineCrossLineListNum(new_line, line_list):
+    line_cross_line_list_num = 0
+    for line in line_list:
+        if isLineCross(new_line, line):
+            line_cross_line_list_num += 1
+    return line_cross_line_list_num
+

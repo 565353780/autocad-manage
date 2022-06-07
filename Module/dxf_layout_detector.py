@@ -7,6 +7,7 @@ from random import randint
 
 from Data.shape import LineCluster
 
+from Method.cross_check import getLineCrossLineListNum
 from Method.cluster import clusterLine
 
 from Module.dxf_renderer import DXFRenderer
@@ -18,6 +19,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.valid_line_list = []
         self.line_cluster_list = []
         self.outer_line_cluster = None
+        self.outer_line_hv_only_cluster = None
         return
 
     def updateValidLineList(self):
@@ -53,21 +55,40 @@ class DXFLayoutDetector(DXFRenderer):
             self.outer_line_cluster = line_cluster
         return True
 
-    def removeNoHVLineInOuterLineCluster(self):
+    def updateOuterLineHVOnlyCluster(self):
+        valid_k_list = [None, float("inf"), 0]
+        k_0_error_max = 1e-6
+        k_inf_min = 1e6
+
         remove_line_idx_list = []
         remove_line_list = []
 
         outer_line_list = self.outer_line_cluster.line_list
         for i in range(len(outer_line_list)):
             line_k = outer_line_list[i].k
-            if line_k is None or line_k == float("inf"):
+            if line_k in valid_k_list:
                 continue
+            abs_line_k = abs(line_k)
+            if abs_line_k < k_0_error_max or abs_line_k > k_inf_min:
+                continue
+            print(line_k)
             remove_line_idx_list.append(i)
             remove_line_list.append(outer_line_list[i])
 
+        #  for i in range(len(outer_line_list)):
+            #  if i in remove_line_idx_list:
+                #  continue
+            #  line_cross_line_list_num = \
+                #  getLineCrossLineListNum(outer_line_list[i], remove_line_list)
+            #  if line_cross_line_list_num < 3:
+                #  continue
+            #  remove_line_idx_list.append(i)
+            
+        self.outer_line_hv_only_cluster = LineCluster()
         for i in range(len(outer_line_list)):
             if i in remove_line_idx_list:
                 continue
+            self.outer_line_hv_only_cluster.addLine(outer_line_list[i])
         return True
 
     def detectLayout(self):
@@ -78,6 +99,10 @@ class DXFLayoutDetector(DXFRenderer):
         if not self.updateOuterLineCluster():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateOuterLineCluster failed!")
+            return False
+        if not self.updateOuterLineHVOnlyCluster():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateOuterLineHVOnlyCluster failed!")
             return False
         return True
 
@@ -112,9 +137,22 @@ class DXFLayoutDetector(DXFRenderer):
                      1, 4)
         return True
 
+    def drawOuterLineHVOnlyCluster(self):
+        draw_color = [255, 255, 255]
+        for line in self.outer_line_hv_only_cluster.line_list:
+            start_point_in_image = self.getImagePosition(line.start_point)
+            end_point_in_image = self.getImagePosition(line.end_point)
+            cv2.line(self.image,
+                     (start_point_in_image.x, start_point_in_image.y),
+                     (end_point_in_image.x, end_point_in_image.y),
+                     np.array(draw_color, dtype=np.float) / 255.0,
+                     1, 4)
+        return True
+
     def drawShape(self):
         #  self.drawLineCluster()
-        self.drawOuterLineCluster()
+        #  self.drawOuterLineCluster()
+        self.drawOuterLineHVOnlyCluster()
         return True
 
 def demo():
