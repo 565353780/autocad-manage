@@ -9,8 +9,8 @@ class BBox(object):
         self.max_point = max_point
 
         self.diff_point = Point()
-        self.updateDiffPoint()
 
+        self.update()
         if self.diff_point.isZero():
             self.reset()
         return
@@ -28,6 +28,13 @@ class BBox(object):
         z_diff = self.max_point.z - self.min_point.z
 
         self.diff_point = Point(x_diff, y_diff, z_diff)
+        return True
+
+    def update(self):
+        if not self.updateDiffPoint():
+            print("[ERROR][BBox::update]")
+            print("\t updateDiffPoint failed!")
+            return False
         return True
 
     def addPosition(self, point):
@@ -131,6 +138,10 @@ class BBox(object):
 
         self.updateDiffPoint()
         return True
+
+    def getArea(self):
+        area = self.diff_point.x * self.diff_point.y
+        return area
 
     def outputInfo(self, info_level):
         line_start = "\t" * info_level

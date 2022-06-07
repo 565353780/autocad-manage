@@ -9,7 +9,7 @@ class Circle(object):
         self.radius = radius
 
         self.bbox = BBox()
-        self.updateBBox()
+        self.update()
         return
 
     def updateBBox(self):
@@ -23,5 +23,12 @@ class Circle(object):
         if not self.bbox.updateBBox(x_min, y_min, z_min, x_max, y_max, z_max):
             print("[ERROR][Line::updateBBox]")
             print("\t updateBBox failed!")
+        return True
+
+    def update(self):
+        if not self.updateBBox():
+            print("[ERROR][Line::updateBBox]")
+            print("\t updateBBox failed!")
+            return False
         return True
 

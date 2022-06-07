@@ -15,6 +15,7 @@ class DXFRenderer(DXFLoader):
         self.image_width = None
         self.image_height = None
         self.free_width = None
+        self.is_reverse_y = None
 
         self.trans_point = None
         self.scale = None
@@ -28,7 +29,11 @@ class DXFRenderer(DXFLoader):
         self.image = None
         return
 
-    def setImageSize(self, image_width, image_height, free_width):
+    def setImageSize(self,
+                     image_width,
+                     image_height,
+                     free_width,
+                     is_reverse_y=False):
         if image_width <= 2 * free_width or image_height <= 2 * free_width:
             print("[ERROR][DXFRenderer::setImageSize]")
             print("\t free_width out of range!")
@@ -36,6 +41,7 @@ class DXFRenderer(DXFLoader):
         self.image_width = image_width
         self.image_height = image_height
         self.free_width = free_width
+        self.is_reverse_y = is_reverse_y
         return True
 
     def updateImageTrans(self):
@@ -68,9 +74,15 @@ class DXFRenderer(DXFLoader):
             int(self.free_width + (world_potision.x + self.trans_point.x) * self.scale),
             int(self.free_width + (world_potision.y + self.trans_point.y) * self.scale),
             int(self.free_width + (world_potision.z + self.trans_point.z) * self.scale))
+
+        if self.is_reverse_y:
+            image_position.y = self.render_image_height - image_position.y
         return image_position
 
     def getWorldPosition(self, image_position):
+        if self.is_reverse_y:
+            image_position.y = self.render_image_height - image_position.y
+
         world_potision = Point(
             1.0 * (image_position.x - self.free_width) / self.scale - self.trans_point.x,
             1.0 * (image_position.y - self.free_width) / self.scale - self.trans_point.y,
@@ -123,6 +135,7 @@ def demo():
     image_width = 1600
     image_height = 900
     free_width = 50
+    is_reverse_y = True
     wait_key = 0
 
     dxf_renderer = DXFRenderer()
@@ -130,7 +143,7 @@ def demo():
 
     dxf_renderer.outputInfo(debug)
 
-    dxf_renderer.setImageSize(image_width, image_height, free_width)
+    dxf_renderer.setImageSize(image_width, image_height, free_width, is_reverse_y)
     dxf_renderer.render(wait_key)
     return True
 

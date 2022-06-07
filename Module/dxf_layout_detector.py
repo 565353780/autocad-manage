@@ -17,6 +17,7 @@ class DXFLayoutDetector(DXFRenderer):
 
         self.valid_line_list = []
         self.line_cluster_list = []
+        self.outer_line_cluster = None
         return
 
     def updateValidLineList(self):
@@ -40,6 +41,46 @@ class DXFLayoutDetector(DXFRenderer):
             self.line_cluster_list.append(line_cluster)
         return True
 
+    def updateOuterLineCluster(self):
+        self.outer_line_cluster = None
+
+        max_bbox_area = 0
+        for line_cluster in self.line_cluster_list:
+            current_bbox_area = line_cluster.bbox.getArea()
+            if current_bbox_area <= max_bbox_area:
+                continue
+            max_bbox_area = current_bbox_area
+            self.outer_line_cluster = line_cluster
+        return True
+
+    def removeNoHVLineInOuterLineCluster(self):
+        remove_line_idx_list = []
+        remove_line_list = []
+
+        outer_line_list = self.outer_line_cluster.line_list
+        for i in range(len(outer_line_list)):
+            line_k = outer_line_list[i].k
+            if line_k is None or line_k == float("inf"):
+                continue
+            remove_line_idx_list.append(i)
+            remove_line_list.append(outer_line_list[i])
+
+        for i in range(len(outer_line_list)):
+            if i in remove_line_idx_list:
+                continue
+        return True
+
+    def detectLayout(self):
+        if not self.clusterLines():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t clusterLines failed!")
+            return False
+        if not self.updateOuterLineCluster():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateOuterLineCluster failed!")
+            return False
+        return True
+
     def drawLineCluster(self):
         draw_white = True
         for line_cluster in self.line_cluster_list:
@@ -59,8 +100,21 @@ class DXFLayoutDetector(DXFRenderer):
                          1, 4)
         return True
 
+    def drawOuterLineCluster(self):
+        draw_color = [255, 255, 255]
+        for line in self.outer_line_cluster.line_list:
+            start_point_in_image = self.getImagePosition(line.start_point)
+            end_point_in_image = self.getImagePosition(line.end_point)
+            cv2.line(self.image,
+                     (start_point_in_image.x, start_point_in_image.y),
+                     (end_point_in_image.x, end_point_in_image.y),
+                     np.array(draw_color, dtype=np.float) / 255.0,
+                     1, 4)
+        return True
+
     def drawShape(self):
-        self.drawLineCluster()
+        #  self.drawLineCluster()
+        self.drawOuterLineCluster()
         return True
 
 def demo():
@@ -69,6 +123,7 @@ def demo():
     image_width = 1600 * 1.2
     image_height = 900 * 1.2
     free_width = 50
+    is_reverse_y = True
     wait_key = 0
 
     dxf_layout_detector = DXFLayoutDetector()
@@ -76,9 +131,9 @@ def demo():
 
     dxf_layout_detector.outputInfo(debug)
 
-    dxf_layout_detector.clusterLines()
+    dxf_layout_detector.detectLayout()
 
-    dxf_layout_detector.setImageSize(image_width, image_height, free_width)
+    dxf_layout_detector.setImageSize(image_width, image_height, free_width, is_reverse_y)
     dxf_layout_detector.render(wait_key)
     return True
 
