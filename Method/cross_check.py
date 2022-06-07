@@ -21,7 +21,7 @@ def isBBoxCross(bbox_1, bbox_2):
 
 def isLineParallel(line_1, line_2):
     if line_1.isPoint() or line_2.isPoint():
-        print("[WARN][cluster::isLineParallel]")
+        print("[WARN][cross_check::isLineParallel]")
         print("\t one of line is a point! set this case as parallel by default")
         return True
 
@@ -78,11 +78,39 @@ def isLineCross(line_1, line_2):
         return False
     return True
 
-def isLineCrossLineList(new_line, line_list):
+def isLineCrossWithPool(inputs):
+    '''
+    Input: [line_1, line_2]
+    '''
+    if len(inputs) != 2:
+        print("[ERROR][cross_check::isLineCrossWithPool]")
+        print("\t inputs size != 2!")
+        return None
+    return isLineCross(inputs[0], inputs[1])
+
+def getLineCrossLineListNum(new_line, line_list):
+    line_cross_line_list_num = 0
+
     for line in line_list:
         if isLineCross(new_line, line):
-            return True
-    return False
+            line_cross_line_list_num += 1
+    return line_cross_line_list_num
+
+def getLineCrossLineListNumWithPool(inputs):
+    '''
+    Input: [new_line, [line_1, line_2, ...]]
+    '''
+    if len(inputs) != 2:
+        print("[ERROR][cross_check::getLineCrossLineListNumWithPool]")
+        print("\t inputs size != 2!")
+        return None
+    return getLineCrossLineListNum(inputs[0], inputs[1])
+
+def isLineCrossLineList(new_line, line_list):
+    line_cross_line_list_num = getLineCrossLineListNum(new_line, line_list)
+    if line_cross_line_list_num == 0:
+        return False
+    return True
 
 def isLineListCross(line_list_1, line_list_2):
     for line in line_list_1:
@@ -90,10 +118,13 @@ def isLineListCross(line_list_1, line_list_2):
             return True
     return False
 
-def getLineCrossLineListNum(new_line, line_list):
-    line_cross_line_list_num = 0
-    for line in line_list:
-        if isLineCross(new_line, line):
-            line_cross_line_list_num += 1
-    return line_cross_line_list_num
+def isLineListCrossWithPool(inputs):
+    '''
+    Input: [[line_1_1, line_1_2, ...], [line_2_1, line_2_2, ...]]
+    '''
+    if len(inputs) != 2:
+        print("[ERROR][cross_check::isLineListCrossWithPool]")
+        print("\t inputs size != 2!")
+        return None
+    return isLineListCross(inputs[0], inputs[1])
 

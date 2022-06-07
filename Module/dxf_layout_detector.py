@@ -32,18 +32,13 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def clusterLines(self):
-        if not self.updateValidLineList():
-            print("[ERROR][DXFLayoutDetector::clusterLines]")
-            print("\t updateValidLineList failed!")
-            return False
-
         line_list_list = clusterLine(self.valid_line_list)
         for line_list in line_list_list:
             line_cluster = LineCluster(line_list)
             self.line_cluster_list.append(line_cluster)
         return True
 
-    def updateOuterLineCluster(self):
+    def updateOuterLineClusterByArea(self):
         self.outer_line_cluster = None
 
         max_bbox_area = 0
@@ -53,6 +48,23 @@ class DXFLayoutDetector(DXFRenderer):
                 continue
             max_bbox_area = current_bbox_area
             self.outer_line_cluster = line_cluster
+        return True
+
+    def updateOuterLineClusterByLineNum(self):
+        self.outer_line_cluster = None
+
+        max_line_num = 0
+        for line_cluster in self.line_cluster_list:
+            current_line_num = len(line_cluster.line_list)
+            if current_line_num <= max_line_num:
+                continue
+            max_line_num = current_line_num
+            self.outer_line_cluster = line_cluster
+        return True
+
+    def updateOuterLineCluster(self):
+        #  self.updateOuterLineClusterByArea()
+        self.updateOuterLineClusterByLineNum()
         return True
 
     def updateOuterLineHVOnlyCluster(self):
@@ -74,6 +86,7 @@ class DXFLayoutDetector(DXFRenderer):
             remove_line_idx_list.append(i)
             remove_line_list.append(outer_line_list[i])
 
+        # remove related lines with fixed cross num
         #  for i in range(len(outer_line_list)):
             #  if i in remove_line_idx_list:
                 #  continue
@@ -91,6 +104,13 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def detectLayout(self):
+        self.circle_list = []
+        self.updateBBox()
+
+        if not self.updateValidLineList():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateValidLineList failed!")
+            return False
         if not self.clusterLines():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t clusterLines failed!")
@@ -155,7 +175,21 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
 def demo():
-    dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
+    dxf_file_path_dict = {
+        "test1": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf",
+        "1": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图1.dxf",
+        "2": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图2.dxf",
+        "3": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图3.dxf",
+        "4": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图4.dxf",
+        "5": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图5.dxf",
+        "6": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图6.dxf",
+        "7": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图7.dxf",
+        "8": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图8.dxf",
+        "9": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图9.dxf",
+        "10": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图10.dxf",
+    }
+
+    dxf_file_path = dxf_file_path_dict["6"]
     debug = True
     image_width = 1600 * 1.2
     image_height = 900 * 1.2

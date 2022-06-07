@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from functools import cmp_to_key
+from tqdm import tqdm
 
-from Method.cross_check import \
-    isLineCrossLineList, isLineListCross
+from Method.cross_check import isLineListCross
 
 def getMergeElementList(list_list, list_idx_list):
     list_list_len = len(list_list)
@@ -41,42 +41,31 @@ def cluster_compare(x, y):
     return 0
 
 def clusterLine(line_list):
-    line_list_list = []
-
-    for line in line_list:
-        line_cross = False
-        for i in range(len(line_list_list)):
-            if isLineCrossLineList(line, line_list_list[i]):
-                line_cross = True
-                line_list_list[i].append(line)
-                break
-        if line_cross:
-            continue
-        line_list_list.append([line])
+    last_line_list_list = []
+    line_list_list = [[line] for line in line_list]
 
     print("[INFO][cluster::clusterLine]")
-    print("\t start cluster line...")
+    print("\t start merge line clusters...")
     while True:
         if len(line_list_list) < 2:
             break
 
-        cross_lines_idx_list = []
+        last_line_list_list = line_list_list
+        line_list_list = []
 
-        for i in range(len(line_list_list) - 1):
-            for j in range(i + 1, len(line_list_list)):
-                if isLineListCross(line_list_list[i], line_list_list[j]):
-                    cross_lines_idx_list.append(j)
-            if len(cross_lines_idx_list) > 0:
-                cross_lines_idx_list.append(i)
-                break
-
-        if len(cross_lines_idx_list) == 0:
+        for line_list in tqdm(last_line_list_list):
+            line_list_cross = False
+            for i in range(len(line_list_list)):
+                if isLineListCross(line_list, line_list_list[i]):
+                    line_list_cross = True
+                    line_list_list[i] += line_list
+                    break
+            if line_list_cross:
+                continue
+            line_list_list.append(line_list)
+        if len(last_line_list_list) == len(line_list_list):
             break
-        line_list_list = \
-            getMergeElementList(line_list_list, cross_lines_idx_list)
-        print("\r\t line_list_list num =", len(line_list_list), "    ", end="")
-    print()
-    print("\t cluster line finished!")
+    print("\t merge line clusters finished!")
 
     line_list_list.sort(key=cmp_to_key(cluster_compare))
     return line_list_list
