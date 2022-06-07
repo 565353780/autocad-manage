@@ -71,7 +71,6 @@ class DXFLayoutDetector(DXFRenderer):
             abs_line_k = abs(line_k)
             if abs_line_k < k_0_error_max or abs_line_k > k_inf_min:
                 continue
-            print(line_k)
             remove_line_idx_list.append(i)
             remove_line_list.append(outer_line_list[i])
 
@@ -80,7 +79,7 @@ class DXFLayoutDetector(DXFRenderer):
                 #  continue
             #  line_cross_line_list_num = \
                 #  getLineCrossLineListNum(outer_line_list[i], remove_line_list)
-            #  if line_cross_line_list_num < 3:
+            #  if line_cross_line_list_num < 1:
                 #  continue
             #  remove_line_idx_list.append(i)
             
