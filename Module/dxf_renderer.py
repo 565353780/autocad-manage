@@ -11,6 +11,9 @@ from Module.dxf_loader import DXFLoader
 class DXFRenderer(DXFLoader):
     def __init__(self):
         super(DXFRenderer, self).__init__()
+        self.line_color = [0, 255, 0]
+        self.circle_color = [0, 255, 255]
+        self.arc_color = [0, 0, 255]
 
         self.image_width = None
         self.image_height = None
@@ -22,9 +25,6 @@ class DXFRenderer(DXFLoader):
 
         self.render_image_width = None
         self.render_image_height = None
-
-        self.line_color = [0, 255, 0]
-        self.circle_color = [0, 255, 255]
 
         self.image = None
         return
@@ -111,9 +111,21 @@ class DXFRenderer(DXFLoader):
                        1, 8, 0)
         return True
 
+    def drawArc(self):
+        for arc in self.arc_list:
+            center_in_image = self.getImagePosition(arc.center)
+            radius_in_image = int(arc.radius * self.scale)
+            cv2.circle(self.image,
+                       (center_in_image.x, center_in_image.y),
+                       radius_in_image,
+                       np.array(self.arc_color, dtype=np.float) / 255.0,
+                       1, 8, 0)
+        return True
+
     def drawShape(self):
         self.drawLine()
         self.drawCircle()
+        self.drawArc()
         return True
 
     def render(self, wait_key=0):
