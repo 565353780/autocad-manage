@@ -140,6 +140,7 @@ class DXFLayoutDetector(DXFRenderer):
     def drawShape(self):
         #  self.drawLineCluster()
         self.drawOuterLineCluster()
+        self.drawArc()
         return True
 
 def demo():
