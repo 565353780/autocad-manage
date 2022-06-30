@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from Data.point import Point
 from Data.bbox import BBox
 
 class Arc(object):
-    def __init__(self, center, radius, start_angle, end_angle):
+    def __init__(self, center, radius, start_angle, end_angle, flatten_point_list):
         self.center = center
         self.radius = radius
         self.start_angle = start_angle
         self.end_angle = end_angle
+        self.flatten_point_list = [Point(point[0], point[1], point[2]) for point in flatten_point_list]
 
         self.bbox = BBox()
         self.update()
@@ -16,16 +18,11 @@ class Arc(object):
 
     # FIXME: see as circle for now
     def updateBBox(self):
-        x_min = self.center.x - self.radius
-        y_min = self.center.y - self.radius
-        z_min = self.center.z - self.radius
-        x_max = self.center.x + self.radius
-        y_max = self.center.y + self.radius
-        z_max = self.center.z + self.radius
-
-        if not self.bbox.updateBBox(x_min, y_min, z_min, x_max, y_max, z_max):
-            print("[ERROR][Arc::updateBBox]")
-            print("\t updateBBox failed!")
+        for point in self.flatten_point_list:
+            if not self.bbox.addPosition(point):
+                print("[ERROR][Arc::updateBBox]")
+                print("\t updateBBox failed!")
+                return False
         return True
 
     def update(self):

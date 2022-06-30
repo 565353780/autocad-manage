@@ -23,6 +23,7 @@ class Circle(object):
         if not self.bbox.updateBBox(x_min, y_min, z_min, x_max, y_max, z_max):
             print("[ERROR][Circle::updateBBox]")
             print("\t updateBBox failed!")
+            return False
         return True
 
     def update(self):

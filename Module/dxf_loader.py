@@ -74,11 +74,15 @@ class DXFLoader(object):
             print("\t this entity is a [" + dxftype + "], not a ARC!")
             return False
 
+
         center = dxf.center
         radius = dxf.radius
         start_angle = dxf.start_angle
         end_angle = dxf.end_angle
-        new_arc = Arc(Point(center[0], center[1], center[2]), radius, start_angle, end_angle)
+
+        flatten_point_list = entity.flattening(radius / 100)
+        new_arc = Arc(Point(center[0], center[1], center[2]), radius,
+                      start_angle, end_angle, flatten_point_list)
         self.arc_list.append(new_arc)
         return True
 

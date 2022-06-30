@@ -113,13 +113,17 @@ class DXFRenderer(DXFLoader):
 
     def drawArc(self):
         for arc in self.arc_list:
-            center_in_image = self.getImagePosition(arc.center)
-            radius_in_image = int(arc.radius * self.scale)
-            cv2.circle(self.image,
-                       (center_in_image.x, center_in_image.y),
-                       radius_in_image,
-                       np.array(self.arc_color, dtype=np.float) / 255.0,
-                       1, 8, 0)
+            point_list = arc.flatten_point_list
+            for i in range(len(point_list) - 1):
+                current_point = point_list[i]
+                next_point = point_list[i + 1]
+                current_point_in_image = self.getImagePosition(current_point)
+                next_point_in_image = self.getImagePosition(next_point)
+                cv2.line(self.image,
+                         (current_point_in_image.x, current_point_in_image.y),
+                         (next_point_in_image.x, next_point_in_image.y),
+                         np.array(self.arc_color, dtype=np.float) / 255.0,
+                         1, 4)
         return True
 
     def drawShape(self):
