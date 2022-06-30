@@ -33,6 +33,9 @@ def isLineParallel(line_1, line_2, angle_error_max=0):
     if line_1_k == line_2_k:
         return True
 
+    if angle_error_max == 0:
+        return False
+
     line_1_rad = atan(line_1_k)
     line_2_rad = atan(line_2_k)
 
