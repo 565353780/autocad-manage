@@ -3,7 +3,6 @@
 
 import cv2
 import numpy as np
-from math import atan
 from random import randint
 
 from Data.shape import Line, LineCluster
@@ -18,8 +17,6 @@ class DXFLayoutDetector(DXFRenderer):
     def __init__(self):
         super(DXFLayoutDetector, self).__init__()
 
-        self.valid_line_list = []
-        self.valid_line_hv_only_list = []
         self.line_cluster_list = []
         self.outer_line_cluster = None
         self.door_arc_list = []
@@ -27,37 +24,36 @@ class DXFLayoutDetector(DXFRenderer):
         self.door_removed_line_cluster = None
         return
 
-    def updateValidLineList(self):
-        self.valid_line_list = []
-
+    def updateValidLine(self):
         for line in self.line_list:
             if line.isPoint():
                 continue
-            self.valid_line_list.append(line)
+            line.setLabel("Valid")
         return True
 
-    def updateValidLineHVOnlyList(self):
-        valid_k_list = [None, float("inf"), 0]
+    def updateValidLineHVOnly(self):
+        valid_k_list = [float("inf"), 0]
         k_0_error_max = 1e-6
         k_inf_min = 1e6
 
-        self.valid_line_hv_only_list = []
-
-        for valid_line in self.valid_line_list:
-            line_k = valid_line.k
+        for line in self.line_list:
+            valid_label = line.getLabel("Valid")
+            if valid_label is None:
+                continue
+            line_k = line.k
             if line_k not in valid_k_list:
                 continue
             abs_line_k = abs(line_k)
-            if k_0_error_max <= abs_line_k <= k_inf_min:
+            if abs_line_k < k_0_error_max:
+                line.setLabel("Horizontal")
                 continue
-            self.valid_line_hv_only_list.append(valid_line)
+            if abs_line_k > k_inf_min:
+                line.setLabel("Vertical")
         return True
 
     def clusterLines(self):
-        line_list_list = clusterLine(self.valid_line_hv_only_list)
-        for line_list in line_list_list:
-            line_cluster = LineCluster(line_list)
-            self.line_cluster_list.append(line_cluster)
+        cluster_label_list = ["Horizontal", "Vertical"]
+        clusterLine(self.line_list, cluster_label_list)
         return True
 
     def updateOuterLineClusterByArea(self):
@@ -170,18 +166,19 @@ class DXFLayoutDetector(DXFRenderer):
         self.circle_list = []
         self.updateBBox()
 
-        if not self.updateValidLineList():
+        if not self.updateValidLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateValidLineList failed!")
+            print("\t updateValidLine failed!")
             return False
-        if not self.updateValidLineHVOnlyList():
+        if not self.updateValidLineHVOnly():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateValidLineHVOnlyList failed!")
+            print("\t updateValidLineHVOnly failed!")
             return False
         if not self.clusterLines():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t clusterLines failed!")
             return False
+        return
         if not self.updateOuterLineCluster():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateOuterLineCluster failed!")
@@ -198,6 +195,27 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateDoorRemovedLineCluster failed!")
             return False
+        return True
+
+    def drawLabel(self, label):
+        value_color_dict = {}
+        for line in self.line_list:
+            value = line.getLabel(label)
+            if value is None:
+                continue
+            if value not in value_color_dict.keys():
+                random_color = [randint(0, 255),
+                                randint(0, 255),
+                                randint(0, 255)]
+                value_color_dict[value] = random_color
+            color = value_color_dict[value]
+            start_point_in_image = self.getImagePosition(line.start_point)
+            end_point_in_image = self.getImagePosition(line.end_point)
+            cv2.line(self.image,
+                     (start_point_in_image.x, start_point_in_image.y),
+                     (end_point_in_image.x, end_point_in_image.y),
+                     np.array(random_color, dtype=np.float) / 255.0,
+                     1, 4)
         return True
 
     def drawLineCluster(self):
@@ -271,6 +289,8 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
+        self.drawLabel("Cluster")
+        return True
         #  self.drawLineCluster()
         self.drawOuterLineCluster()
 
