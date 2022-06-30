@@ -20,6 +20,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.valid_line_hv_only_list = []
         self.line_cluster_list = []
         self.outer_line_cluster = None
+        self.door_arc_list = []
         return
 
     def updateValidLineList(self):
@@ -84,6 +85,27 @@ class DXFLayoutDetector(DXFRenderer):
         self.updateOuterLineClusterByLineNum()
         return True
 
+    def updateDoorArcList(self):
+        error_max = 10
+
+        max_radius = 0
+        min_radius = float('inf')
+        door_arc_list = []
+        for arc in self.arc_list:
+            angles = abs(arc.end_angle - arc.start_angle)
+            if abs(angles - 90) <= error_max:
+                door_arc_list.append(arc)
+                max_radius = max(max_radius, arc.radius)
+                min_radius = min(min_radius, arc.radius)
+
+        mean_radius = (max_radius + min_radius) / 2.0
+
+        for arc in door_arc_list:
+            if arc.radius < mean_radius:
+                continue
+            self.door_arc_list.append(arc)
+        return True
+
     def detectLayout(self):
         self.circle_list = []
         self.updateBBox()
@@ -103,6 +125,10 @@ class DXFLayoutDetector(DXFRenderer):
         if not self.updateOuterLineCluster():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateOuterLineCluster failed!")
+            return False
+        if not self.updateDoorArcList():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateDoorArcList failed!")
             return False
         return True
 
@@ -137,10 +163,25 @@ class DXFLayoutDetector(DXFRenderer):
                      1, 4)
         return True
 
+    def drawDoorArcList(self):
+        for arc in self.door_arc_list:
+            point_list = arc.flatten_point_list
+            for i in range(len(point_list) - 1):
+                current_point = point_list[i]
+                next_point = point_list[i + 1]
+                current_point_in_image = self.getImagePosition(current_point)
+                next_point_in_image = self.getImagePosition(next_point)
+                cv2.line(self.image,
+                         (current_point_in_image.x, current_point_in_image.y),
+                         (next_point_in_image.x, next_point_in_image.y),
+                         np.array(self.arc_color, dtype=np.float) / 255.0,
+                         1, 4)
+        return True
+
     def drawShape(self):
         #  self.drawLineCluster()
         self.drawOuterLineCluster()
-        self.drawArc()
+        self.drawDoorArcList()
         return True
 
 def demo():
