@@ -4,7 +4,7 @@
 import os
 import ezdxf
 
-from Data.shape import Point, Line, Circle, BBox
+from Data.shape import Point, Line, Circle, Arc, BBox
 
 class DXFLoader(object):
     def __init__(self):
@@ -19,6 +19,7 @@ class DXFLoader(object):
         self.layout_names = []
         self.line_list = []
         self.circle_list = []
+        self.arc_list = []
         self.bbox = BBox()
         self.undefined_entity_type_list = []
         return
@@ -64,6 +65,23 @@ class DXFLoader(object):
         self.circle_list.append(new_circle)
         return True
 
+    def loadArcEntity(self, entity):
+        dxf = entity.dxf
+        dxftype = entity.dxftype()
+
+        if dxftype != "ARC":
+            print("[ERROR][DXFLoader::loadArcEntity]")
+            print("\t this entity is a [" + dxftype + "], not a ARC!")
+            return False
+
+        center = dxf.center
+        radius = dxf.radius
+        start_angle = dxf.start_angle
+        end_angle = dxf.end_angle
+        new_arc = Arc(Point(center[0], center[1], center[2]), radius, start_angle, end_angle)
+        self.arc_list.append(new_arc)
+        return True
+
     def loadEntity(self, entity, depth=0):
         dxftype = entity.dxftype()
 
@@ -78,6 +96,13 @@ class DXFLoader(object):
             if not self.loadCircleEntity(entity):
                 print("[ERROR][DXFLoader::loadEntity]")
                 print("\t loadCircleEntity failed!")
+                return False
+            return True
+
+        if dxftype == "ARC":
+            if not self.loadArcEntity(entity):
+                print("[ERROR][DXFLoader::loadEntity]")
+                print("\t loadArcEntity failed!")
                 return False
             return True
 
@@ -115,6 +140,12 @@ class DXFLoader(object):
             if not self.bbox.addBBoxPosition(circle.bbox):
                 print("[ERROR][DXFLoader::updateBBox]")
                 print("\t addBBoxPosition for circle failed!")
+                return False
+
+        for arc in self.arc_list:
+            if not self.bbox.addBBoxPosition(arc.bbox):
+                print("[ERROR][DXFLoader::updateBBox]")
+                print("\t addBBoxPosition for arc failed!")
                 return False
         return True
 
@@ -165,6 +196,15 @@ class DXFLoader(object):
                 return True
             print("center =", dxf.center)
             print("radius =", dxf.radius)
+            return True
+
+        if dxftype == "ARC":
+            if debug:
+                return True
+            print("center =", dxf.center)
+            print("radius =", dxf.radius)
+            print("start_angle =", dxf.start_angle)
+            print("end_angle =", dxf.end_angle)
             return True
 
         if dxftype in ["LWPOLYLINE", "INSERT"]:
