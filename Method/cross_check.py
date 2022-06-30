@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from math import atan, pi
+
 from Data.shape import Line
 
 def cross(point_1, point_2, point_3):
@@ -19,29 +21,29 @@ def isBBoxCross(bbox_1, bbox_2):
         return False
     return True
 
-def isLineParallel(line_1, line_2):
+def isLineParallel(line_1, line_2, angle_error_max=0):
     if line_1.isPoint() or line_2.isPoint():
         print("[WARN][cross_check::isLineParallel]")
         print("\t one of line is a point! set this case as parallel by default")
         return True
 
-    line_1_x_diff = line_1.bbox.diff_point.x
-    line_1_y_diff = line_1.bbox.diff_point.y
-    line_2_x_diff = line_2.bbox.diff_point.x
-    line_2_y_diff = line_2.bbox.diff_point.y
-
-    if line_1_x_diff == 0:
-        if line_2_x_diff != 0:
-            return False
-        return True
-
-    if line_2_x_diff == 0:
-        return True
-
-    line_1_k = line_1_y_diff / line_1_x_diff
-    line_2_k = line_2_y_diff / line_2_x_diff
+    line_1_k = line_1.k
+    line_2_k = line_2.k
 
     if line_1_k == line_2_k:
+        return True
+
+    line_1_rad = atan(line_1_k)
+    line_2_rad = atan(line_2_k)
+
+    rad_diff = abs(line_1_rad - line_2_rad)
+    rad_diff_to_pi = abs(rad_diff - pi)
+
+    rad_diff = min(rad_diff, rad_diff_to_pi)
+
+    angle_diff = rad_diff * 180.0 / pi
+
+    if angle_diff < angle_error_max:
         return True
     return False
 

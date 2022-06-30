@@ -3,12 +3,14 @@
 
 import cv2
 import numpy as np
+from math import atan
 from random import randint
 
-from Data.shape import LineCluster
+from Data.shape import Line, LineCluster
 
-from Method.cross_check import getLineCrossLineListNum
+from Method.cross_check import isLineParallel
 from Method.cluster import clusterLine
+from Method.dists import getLineDist2
 
 from Module.dxf_renderer import DXFRenderer
 
@@ -21,6 +23,8 @@ class DXFLayoutDetector(DXFRenderer):
         self.line_cluster_list = []
         self.outer_line_cluster = None
         self.door_arc_list = []
+        self.door_line_list = []
+        self.door_removed_line_cluster = None
         return
 
     def updateValidLineList(self):
@@ -106,6 +110,62 @@ class DXFLayoutDetector(DXFRenderer):
             self.door_arc_list.append(arc)
         return True
 
+    def updateDoorLineList(self):
+        angle_error_max = 10.0
+
+        arc_line_pair_list = []
+
+        for arc in self.door_arc_list:
+            center = arc.center
+            start_point = arc.flatten_point_list[0]
+            end_point = arc.flatten_point_list[-1]
+            start_line = Line(center, start_point)
+            end_line = Line(center, end_point)
+            arc_line_pair_list.append([start_line, end_line])
+
+        line_list = self.outer_line_cluster.line_list
+
+        door_line_pair_pair_list = []
+        for arc_line_pair in arc_line_pair_list:
+            door_line_pair_pair = []
+            for arc_line in arc_line_pair:
+                first_line_idx = -1
+                second_line_idx = -1
+                first_min_dist_to_arc_line = float('inf')
+                second_min_dist_to_arc_line = float('inf')
+                for i, line in enumerate(line_list):
+                    current_dist_to_door_line = getLineDist2(arc_line, line)
+                    if current_dist_to_door_line >= second_min_dist_to_arc_line:
+                        continue
+
+                    second_line_idx = i
+                    second_min_dist_to_arc_line = current_dist_to_door_line
+
+                    if current_dist_to_door_line >= first_min_dist_to_arc_line:
+                        continue
+
+                    second_line_idx = first_line_idx
+                    second_min_dist_to_arc_line = first_min_dist_to_arc_line
+                    first_line_idx = i
+                    first_min_dist_to_arc_line = current_dist_to_door_line
+                first_min_dist_line = line_list[first_line_idx]
+                second_min_dist_line = line_list[second_line_idx]
+
+                if not isLineParallel(arc_line, first_min_dist_line, angle_error_max) or \
+                        not isLineParallel(arc_line, second_min_dist_line, angle_error_max):
+                    continue
+                door_line_pair_pair.append([line_list[first_line_idx], line_list[second_line_idx]])
+            door_line_pair_pair_list.append(door_line_pair_pair)
+
+        self.door_line_list = []
+        for door_line_pair_pair in door_line_pair_pair_list:
+            for door_line_pair in door_line_pair_pair:
+                self.door_line_list += door_line_pair
+        return True
+
+    def updateDoorRemovedLineCluster(self):
+        return True
+
     def detectLayout(self):
         self.circle_list = []
         self.updateBBox()
@@ -129,6 +189,14 @@ class DXFLayoutDetector(DXFRenderer):
         if not self.updateDoorArcList():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateDoorArcList failed!")
+            return False
+        if not self.updateDoorLineList():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateDoorLineList failed!")
+            return False
+        if not self.updateDoorRemovedLineCluster():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateDoorRemovedLineCluster failed!")
             return False
         return True
 
@@ -178,10 +246,37 @@ class DXFLayoutDetector(DXFRenderer):
                          1, 4)
         return True
 
+    def drawDoorLineList(self):
+        draw_color = [0, 0, 255]
+        for line in self.door_line_list:
+            start_point_in_image = self.getImagePosition(line.start_point)
+            end_point_in_image = self.getImagePosition(line.end_point)
+            cv2.line(self.image,
+                     (start_point_in_image.x, start_point_in_image.y),
+                     (end_point_in_image.x, end_point_in_image.y),
+                     np.array(draw_color, dtype=np.float) / 255.0,
+                     1, 4)
+        return True
+
+    def drawDoorRemovedLineCluster(self):
+        draw_color = [255, 0, 255]
+        for line in self.door_removed_line_cluster.line_list:
+            start_point_in_image = self.getImagePosition(line.start_point)
+            end_point_in_image = self.getImagePosition(line.end_point)
+            cv2.line(self.image,
+                     (start_point_in_image.x, start_point_in_image.y),
+                     (end_point_in_image.x, end_point_in_image.y),
+                     np.array(draw_color, dtype=np.float) / 255.0,
+                     1, 4)
+        return True
+
     def drawShape(self):
         #  self.drawLineCluster()
         self.drawOuterLineCluster()
-        self.drawDoorArcList()
+
+        #  self.drawDoorArcList()
+        self.drawDoorLineList()
+        #  self.drawDoorRemovedLineCluster()
         return True
 
 def demo():

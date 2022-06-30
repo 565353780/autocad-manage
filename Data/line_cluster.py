@@ -25,7 +25,6 @@ class LineCluster(object):
         if len(line_list) == 0:
             return True
 
-        for line in line_list:
-            self.addLine(line)
+        self.line_list += line_list
         return True
 

@@ -76,3 +76,10 @@ class Line(object):
             return True
         return False
 
+    def getMiddlePoint(self):
+        x_mean = (self.start_point.x + self.end_point.x) / 2.0
+        y_mean = (self.start_point.y + self.end_point.y) / 2.0
+        z_mean = (self.start_point.z + self.end_point.z) / 2.0
+        middle_point = Point(x_mean, y_mean, z_mean)
+        return middle_point
+
