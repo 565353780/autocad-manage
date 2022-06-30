@@ -251,6 +251,33 @@ class DXFLoader(object):
             break
         return True
 
+    def getShapeListLabelDict(self, shape_list):
+        label_dict = {}
+        for shape in shape_list:
+            label = shape.getLabelStr()
+            if label not in label_dict.keys():
+                label_dict[label] = 1
+                continue
+            label_dict[label] += 1
+        return label_dict
+
+    def outputLabel(self):
+        line_label_dict = self.getShapeListLabelDict(self.line_list)
+        print("Line Label :")
+        for key in line_label_dict.keys():
+            print("\t", key, line_label_dict[key])
+
+        circle_label_dict = self.getShapeListLabelDict(self.circle_list)
+        print("Circle Label :")
+        for key in circle_label_dict.keys():
+            print("\t", key, circle_label_dict[key])
+
+        arc_label_dict = self.getShapeListLabelDict(self.arc_list)
+        print("Arc Label :")
+        for key in arc_label_dict.keys():
+            print("\t", key, arc_label_dict[key])
+        return True
+
     def outputInfo(self, debug=False):
         print("====entity====")
         self.outputEntity(debug)
