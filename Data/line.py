@@ -3,11 +3,13 @@
 
 from math import sqrt
 
+from Data.label import Label
 from Data.point import Point
 from Data.bbox import BBox
 
-class Line(object):
+class Line(Label):
     def __init__(self, start_point=Point(), end_point=Point()):
+        super(Line, self).__init__()
         self.start_point = start_point
         self.end_point = end_point
 
