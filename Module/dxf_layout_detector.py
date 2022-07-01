@@ -8,7 +8,7 @@ from random import randint
 from Data.shape import Line, LineCluster
 
 from Method.cross_check import isLineParallel
-from Method.cluster import clusterLine
+from Method.cluster import isLineHaveLabel, clusterLine
 from Method.dists import getLineDist2
 
 from Module.dxf_renderer import DXFRenderer
@@ -53,7 +53,17 @@ class DXFLayoutDetector(DXFRenderer):
 
     def clusterLines(self):
         cluster_label_list = ["Horizontal", "Vertical"]
-        clusterLine(self.line_list, cluster_label_list)
+        #  clusterLine(self.line_list, cluster_label_list)
+
+        line_list = []
+        for line in self.line_list:
+            if not isLineHaveLabel(line, cluster_label_list):
+                continue
+            line_list.append(line)
+
+        line_list_list = clusterLine(line_list)
+        for line_list in line_list_list:
+            self.line_cluster_list.append(LineCluster(line_list))
         return True
 
     def updateOuterLineClusterByArea(self):
@@ -178,7 +188,6 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t clusterLines failed!")
             return False
-        return
         if not self.updateOuterLineCluster():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateOuterLineCluster failed!")
@@ -289,8 +298,9 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
-        self.drawLabel("Cluster")
-        return True
+        #  self.drawLabel("Cluster")
+        #  return True
+
         #  self.drawLineCluster()
         self.drawOuterLineCluster()
 
