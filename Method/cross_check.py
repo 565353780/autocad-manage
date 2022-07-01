@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from math import atan, pi
+from math import atan, atan2, pi
 
 from Data.shape import Line
 
@@ -132,4 +132,20 @@ def isLineListCrossWithPool(inputs):
         print("\t inputs size != 2!")
         return None
     return isLineListCross(inputs[0], inputs[1])
+
+def isPointInArcArea(point, arc):
+    point_line = Line(arc.center, point)
+    if point_line.isPoint():
+        return False
+
+    line_diff_point = point_line.diff_point
+    point_line_rad = atan2(line_diff_point.y, line_diff_point.x)
+    point_line_angle = point_line_rad * 180.0 / pi
+
+    print(point_line_angle)
+    print(arc.start_angle, ",", arc.end_angle)
+
+    if arc.start_angle < point_line_angle < arc.end_angle:
+        return True
+    return False
 

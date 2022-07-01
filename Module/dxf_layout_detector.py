@@ -7,9 +7,9 @@ from random import randint
 
 from Data.shape import Line, LineCluster
 
-from Method.cross_check import isLineParallel
+from Method.cross_check import isLineParallel, isPointInArcArea
 from Method.cluster import isLineHaveLabel, clusterLine
-from Method.dists import getLineDist2
+from Method.dists import getPointDist2, getLineDist2
 
 from Module.dxf_renderer import DXFRenderer
 
@@ -131,8 +131,9 @@ class DXFLayoutDetector(DXFRenderer):
 
         line_list = self.outer_line_cluster.line_list
 
+        valid_door_arc_list = []
         door_line_pair_pair_list = []
-        for arc_line_pair in arc_line_pair_list:
+        for door_arc, arc_line_pair in zip(self.door_arc_list, arc_line_pair_list):
             door_line_pair_pair = []
             for arc_line in arc_line_pair:
                 first_line_idx = -1
@@ -160,13 +161,52 @@ class DXFLayoutDetector(DXFRenderer):
                 if not isLineParallel(arc_line, first_min_dist_line, angle_error_max) or \
                         not isLineParallel(arc_line, second_min_dist_line, angle_error_max):
                     continue
+
                 door_line_pair_pair.append([line_list[first_line_idx], line_list[second_line_idx]])
+
+            if len(door_line_pair_pair) == 0:
+                continue
+
+            valid_door_arc_list.append(door_arc)
             door_line_pair_pair_list.append(door_line_pair_pair)
+
+        self.door_arc_list = valid_door_arc_list
+
+        extra_door_line_list = []
+        for valid_door_arc, door_line_pair_pair in \
+                zip(valid_door_arc_list, door_line_pair_pair_list):
+            for door_line_pair in door_line_pair_pair:
+                arc_line = door_line_pair[0]
+                second_min_dist_line = door_line_pair[1]
+
+                arc_line_start_point_to_center_dist = \
+                    getPointDist2(arc_line.start_point, valid_door_arc.center)
+                arc_line_end_point_to_center_dist = \
+                    getPointDist2(arc_line.end_point, valid_door_arc.center)
+
+                arc_line_point = arc_line.start_point
+                if arc_line_end_point_to_center_dist > arc_line_start_point_to_center_dist:
+                    arc_line_point = arc_line.end_point
+
+                door_line_start_point_to_arc_line_point_dist = \
+                    getPointDist2(second_min_dist_line.start_point, arc_line_point)
+                door_line_end_point_to_arc_line_point_dist = \
+                    getPointDist2(second_min_dist_line.end_point, arc_line_point)
+
+                door_line_point = second_min_dist_line.start_point
+                if door_line_end_point_to_arc_line_point_dist < \
+                        door_line_start_point_to_arc_line_point_dist:
+                    door_line_point = second_min_dist_line.end_point
+
+                if isPointInArcArea(door_line_point, valid_door_arc):
+                    extra_door_line_list.append(Line(arc_line_point, door_line_point))
 
         self.door_line_list = []
         for door_line_pair_pair in door_line_pair_pair_list:
             for door_line_pair in door_line_pair_pair:
                 self.door_line_list += door_line_pair
+
+        self.door_line_list += extra_door_line_list
         return True
 
     def updateDoorRemovedLineCluster(self):
@@ -304,7 +344,7 @@ class DXFLayoutDetector(DXFRenderer):
         #  self.drawLineCluster()
         self.drawOuterLineCluster()
 
-        #  self.drawDoorArcList()
+        self.drawDoorArcList()
         self.drawDoorLineList()
         #  self.drawDoorRemovedLineCluster()
         return True
