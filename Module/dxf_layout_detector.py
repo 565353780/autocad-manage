@@ -357,6 +357,7 @@ def demo():
         "9": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图9.dxf",
         "10": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图10.dxf",
     }
+    valid_key_list = ["test1", "3", "4", "5", "6", "9", "10"]
 
     dxf_file_path = dxf_file_path_dict["test1"]
     debug = True
