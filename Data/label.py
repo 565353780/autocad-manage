@@ -18,7 +18,9 @@ class Label(object):
         label_str = ""
         for key in self.label_dict:
             label_str += key
-            label_str += str(self.label_dict[key])
+            value = self.label_dict[key]
+            if value != True:
+                label_str += str(self.label_dict[key])
             label_str += "_"
 
         if label_str == "":

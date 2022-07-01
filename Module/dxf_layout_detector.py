@@ -5,10 +5,10 @@ import cv2
 import numpy as np
 from random import randint
 
-from Data.shape import Line, LineCluster
+from Data.line import Line
 
 from Method.cross_check import isLineParallel, isPointInArcArea
-from Method.cluster import isLineHaveLabel, clusterLine
+from Method.cluster import clusterLineByIdx
 from Method.dists import getPointDist2, getLineDist2
 
 from Module.dxf_renderer import DXFRenderer
@@ -53,17 +53,7 @@ class DXFLayoutDetector(DXFRenderer):
 
     def clusterLines(self):
         cluster_label_list = ["Horizontal", "Vertical"]
-        #  clusterLine(self.line_list, cluster_label_list)
-
-        line_list = []
-        for line in self.line_list:
-            if not isLineHaveLabel(line, cluster_label_list):
-                continue
-            line_list.append(line)
-
-        line_list_list = clusterLine(line_list)
-        for line_list in line_list_list:
-            self.line_cluster_list.append(LineCluster(line_list))
+        self.line_cluster_list = clusterLineByIdx(self.line_list, cluster_label_list)
         return True
 
     def updateOuterLineClusterByArea(self):

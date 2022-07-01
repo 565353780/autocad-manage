@@ -4,6 +4,8 @@
 from functools import cmp_to_key
 from tqdm import tqdm
 
+from Data.line_cluster import LineCluster
+
 from Method.cross_check import isLineCross, isLineListCross
 
 def getMergeElementList(list_list, list_idx_list):
@@ -53,46 +55,16 @@ def clusterLine(line_list):
         last_line_list_list = line_list_list
         line_list_list = []
 
-        for line_list in tqdm(last_line_list_list):
+        for last_line_list in tqdm(last_line_list_list):
             line_list_cross = False
             for i in range(len(line_list_list)):
-                if isLineListCross(line_list, line_list_list[i]):
+                if isLineListCross(last_line_list, line_list_list[i]):
                     line_list_cross = True
-                    line_list_list[i] += line_list
+                    line_list_list[i] += last_line_list
                     break
             if line_list_cross:
                 continue
-            line_list_list.append(line_list)
-        if len(last_line_list_list) == len(line_list_list):
-            break
-    print("\t merge line clusters finished!")
-
-    line_list_list.sort(key=cmp_to_key(cluster_compare))
-    return line_list_list
-
-def clusterLineByIdx(line_list):
-    last_line_list_list = []
-    line_list_list = [[i] for i in range(len(line_list))]
-
-    print("[INFO][cluster::clusterLine]")
-    print("\t start merge line clusters...")
-    while True:
-        if len(line_list_list) < 2:
-            break
-
-        last_line_list_list = line_list_list
-        line_list_list = []
-
-        for line_list in tqdm(last_line_list_list):
-            line_list_cross = False
-            for i in range(len(line_list_list)):
-                if isLineListCross(line_list, line_list_list[i]):
-                    line_list_cross = True
-                    line_list_list[i] += line_list
-                    break
-            if line_list_cross:
-                continue
-            line_list_list.append(line_list)
+            line_list_list.append(last_line_list)
         if len(last_line_list_list) == len(line_list_list):
             break
     print("\t merge line clusters finished!")
@@ -130,43 +102,47 @@ def getClusterNum(line_list):
     print(cluster_num_dict)
     return True
 
-def clusterLineByLabel(line_list, label_list):
-    print("[INFO][cluster::clusterLine]")
+def clusterLineByIdx(line_list, cluster_label_list):
+    last_line_idx_list_list = []
+    line_idx_list_list = []
+    for i in range(len(line_list)):
+        if isLineHaveLabel(line_list[i], cluster_label_list):
+            line_idx_list_list.append([i])
+
+    print("[INFO][cluster::clusterLineByIdx]")
     print("\t start merge line clusters...")
+    while True:
+        if len(line_idx_list_list) < 2:
+            break
 
-    next_cluster_idx = 0
-    for line in line_list:
-        if not isLineHaveLabel(line, label_list):
-            continue
-        line.setLabel("Cluster", next_cluster_idx)
-        next_cluster_idx += 1
-    getClusterNum(line_list)
+        last_line_idx_list_list = line_idx_list_list
+        line_idx_list_list = []
 
-    if next_cluster_idx < 2:
-        return True
-
-    label_changed = True
-    while label_changed:
-        label_changed = False
-
-        for i in tqdm(range(len(line_list) - 1)):
-            line_1 = line_list[i]
-            line_1_cluster_idx = line_1.getLabel("Cluster")
-            if line_1_cluster_idx is None:
+        for last_line_idx_list in tqdm(last_line_idx_list_list):
+            line_list_cross = False
+            for i in range(len(line_idx_list_list)):
+                last_line_list = [line_list[j] for j in last_line_idx_list]
+                current_line_list = [line_list[j] for j in line_idx_list_list[i]]
+                if isLineListCross(last_line_list, current_line_list):
+                    line_list_cross = True
+                    line_idx_list_list[i] += last_line_idx_list
+                    break
+            if line_list_cross:
                 continue
-
-            for j in range(i + 1, len(line_list)):
-                line_2 = line_list[j]
-                line_2_cluster_idx = line_2.getLabel("Cluster")
-                if line_2_cluster_idx is None:
-                    continue
-                if line_1_cluster_idx == line_2_cluster_idx:
-                    continue
-
-                if isLineCross(line_1, line_2):
-                    changeClusterIdx(line_list, line_2_cluster_idx, line_1_cluster_idx)
-                    label_changed = True
-        getClusterNum(line_list)
+            line_idx_list_list.append(last_line_idx_list)
+        if len(last_line_idx_list_list) == len(line_idx_list_list):
+            break
     print("\t merge line clusters finished!")
-    return True
+
+    line_idx_list_list.sort(key=cmp_to_key(cluster_compare))
+
+    line_cluster_list = []
+
+    for i, line_idx_list in enumerate(line_idx_list_list):
+        line_cluster = LineCluster()
+        for line_idx in line_idx_list:
+            line_list[line_idx].setLabel("Cluster", i)
+            line_cluster.addLine(line_list[line_idx])
+        line_cluster_list.append(line_cluster)
+    return line_cluster_list
 

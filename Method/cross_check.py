@@ -142,9 +142,6 @@ def isPointInArcArea(point, arc):
     point_line_rad = atan2(line_diff_point.y, line_diff_point.x)
     point_line_angle = point_line_rad * 180.0 / pi
 
-    print(point_line_angle)
-    print(arc.start_angle, ",", arc.end_angle)
-
     if arc.start_angle < point_line_angle < arc.end_angle:
         return True
     return False
