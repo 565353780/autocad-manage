@@ -328,6 +328,10 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
+
+        #  self.drawLabel("Valid")
+        #  return True
+
         #  self.drawLabel("Cluster")
         #  return True
 
@@ -354,7 +358,7 @@ def demo():
         "10": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图10.dxf",
     }
 
-    dxf_file_path = dxf_file_path_dict["3"]
+    dxf_file_path = dxf_file_path_dict["test1"]
     debug = True
     image_width = 1600 * 1.2
     image_height = 900 * 1.2
