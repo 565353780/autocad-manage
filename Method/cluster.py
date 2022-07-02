@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from Data.line_cluster import LineCluster
 
-from Method.cross_check import isLineCross, isLineListCross
+from Method.cross_check import isLineListCross
 
 def getMergeElementList(list_list, list_idx_list):
     list_list_len = len(list_list)
@@ -42,7 +42,7 @@ def cluster_compare(x, y):
         return -1
     return 0
 
-def clusterLine(line_list):
+def clusterLine(line_list, max_dist_error=0):
     last_line_list_list = []
     line_list_list = [[line] for line in line_list]
 
@@ -58,7 +58,7 @@ def clusterLine(line_list):
         for last_line_list in tqdm(last_line_list_list):
             line_list_cross = False
             for i in range(len(line_list_list)):
-                if isLineListCross(last_line_list, line_list_list[i]):
+                if isLineListCross(last_line_list, line_list_list[i], max_dist_error):
                     line_list_cross = True
                     line_list_list[i] += last_line_list
                     break
@@ -102,7 +102,7 @@ def getClusterNum(line_list):
     print(cluster_num_dict)
     return True
 
-def clusterLineByIdx(line_list, cluster_label_list):
+def clusterLineByIdx(line_list, cluster_label_list, max_dist_error=0):
     last_line_idx_list_list = []
     line_idx_list_list = []
     for i in range(len(line_list)):
@@ -123,7 +123,7 @@ def clusterLineByIdx(line_list, cluster_label_list):
             for i in range(len(line_idx_list_list)):
                 last_line_list = [line_list[j] for j in last_line_idx_list]
                 current_line_list = [line_list[j] for j in line_idx_list_list[i]]
-                if isLineListCross(last_line_list, current_line_list):
+                if isLineListCross(last_line_list, current_line_list, max_dist_error):
                     line_list_cross = True
                     line_idx_list_list[i] += last_line_idx_list
                     break
