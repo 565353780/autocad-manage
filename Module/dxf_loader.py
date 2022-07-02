@@ -4,14 +4,18 @@
 import os
 import ezdxf
 
+from Config.configs import RENDER_ALL
+
 from Data.shape import Point, Line, Circle, Arc, BBox
 
 class DXFLoader(object):
-    def __init__(self):
+    def __init__(self, config):
         self.load_depth_dict = {
             "LWPOLYLINE" : -1,
             "INSERT" : 1,
         }
+
+        self.config = config
 
         self.doc = None
 
@@ -22,6 +26,8 @@ class DXFLoader(object):
         self.arc_list = []
         self.bbox = BBox()
         self.undefined_entity_type_list = []
+
+        self.loadFile(self.config['dxf_file_path'])
         return
 
     def reset(self):
@@ -278,9 +284,9 @@ class DXFLoader(object):
             print("\t", key, arc_label_dict[key])
         return True
 
-    def outputInfo(self, debug=False):
+    def outputInfo(self):
         print("====entity====")
-        self.outputEntity(debug)
+        self.outputEntity(self.config['debug'])
 
         print("====layout====")
         self.outputLayout()
@@ -293,13 +299,10 @@ class DXFLoader(object):
         return True
 
 def demo():
-    dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
-    debug = True
+    config = RENDER_ALL
 
-    dxf_loader = DXFLoader()
-    dxf_loader.loadFile(dxf_file_path)
-
-    dxf_loader.outputInfo(debug)
+    dxf_loader = DXFLoader(config)
+    dxf_loader.outputInfo()
     return True
 
 if __name__ == "__main__":

@@ -5,6 +5,10 @@ import cv2
 import numpy as np
 from random import randint
 
+from Config.configs import \
+    LAYOUT_TEST1, LAYOUT_3, LAYOUT_4, LAYOUT_5, \
+    LAYOUT_6, LAYOUT_9, LAYOUT_10
+
 from Data.line import Line
 
 from Method.cross_check import isLineParallel, isPointInArcArea
@@ -14,14 +18,16 @@ from Method.dists import getPointDist2, getLineDist2
 from Module.dxf_renderer import DXFRenderer
 
 class DXFLayoutDetector(DXFRenderer):
-    def __init__(self):
-        super(DXFLayoutDetector, self).__init__()
+    def __init__(self, config):
+        super(DXFLayoutDetector, self).__init__(config)
 
         self.line_cluster_list = []
         self.outer_line_cluster = None
         self.door_arc_list = []
         self.door_line_list = []
         self.door_removed_line_cluster = None
+
+        self.detectLayout()
         return
 
     def updateValidLine(self):
@@ -53,7 +59,9 @@ class DXFLayoutDetector(DXFRenderer):
 
     def clusterLines(self):
         cluster_label_list = ["Horizontal", "Vertical"]
-        self.line_cluster_list = clusterLineByIdx(self.line_list, cluster_label_list)
+        self.line_cluster_list = clusterLineByIdx(self.line_list,
+                                                  cluster_label_list,
+                                                  self.config['max_dist_error'])
         return True
 
     def updateOuterLineClusterByArea(self):
@@ -253,7 +261,7 @@ class DXFLayoutDetector(DXFRenderer):
             cv2.line(self.image,
                      (start_point_in_image.x, start_point_in_image.y),
                      (end_point_in_image.x, end_point_in_image.y),
-                     np.array(random_color, dtype=np.float) / 255.0,
+                     np.array(color, dtype=np.float) / 255.0,
                      1, 4)
         return True
 
@@ -344,38 +352,12 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
 def demo():
-    dxf_file_path_dict = {
-        "test1": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf",
-        "1": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图1.dxf",
-        "2": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图2.dxf",
-        "3": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图3.dxf",
-        "4": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图4.dxf",
-        "5": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图5.dxf",
-        "6": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图6.dxf",
-        "7": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图7.dxf",
-        "8": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图8.dxf",
-        "9": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图9.dxf",
-        "10": "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/给坤哥测试用例/户型图10.dxf",
-    }
-    valid_key_list = ["test1", "3", "4", "5", "6", "9", "10"]
+    config = LAYOUT_TEST1
 
-    dxf_file_path = dxf_file_path_dict["test1"]
-    debug = True
-    image_width = 1600 * 1.2
-    image_height = 900 * 1.2
-    free_width = 50
-    is_reverse_y = True
-    wait_key = 0
-
-    dxf_layout_detector = DXFLayoutDetector()
-    dxf_layout_detector.loadFile(dxf_file_path)
-
-    dxf_layout_detector.outputInfo(debug)
-
-    dxf_layout_detector.detectLayout()
-
-    dxf_layout_detector.setImageSize(image_width, image_height, free_width, is_reverse_y)
-    dxf_layout_detector.render(wait_key)
+    dxf_layout_detector = DXFLayoutDetector(config)
+    dxf_layout_detector.outputInfo()
+    dxf_layout_detector.render()
+    cv2.waitKey(0)
     return True
 
 if __name__ == "__main__":

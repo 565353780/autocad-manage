@@ -4,13 +4,15 @@
 import cv2
 import numpy as np
 
+from Config.configs import RENDER_ALL
+
 from Data.shape import Point
 
 from Module.dxf_loader import DXFLoader
 
 class DXFRenderer(DXFLoader):
-    def __init__(self):
-        super(DXFRenderer, self).__init__()
+    def __init__(self, config):
+        super(DXFRenderer, self).__init__(config)
         self.line_color = [0, 255, 0]
         self.circle_color = [0, 255, 255]
         self.arc_color = [0, 0, 255]
@@ -27,6 +29,11 @@ class DXFRenderer(DXFLoader):
         self.render_image_height = None
 
         self.image = None
+
+        self.setImageSize(self.config['image_width'],
+                          self.config['image_height'],
+                          self.config['free_width'],
+                          self.config['is_reverse_y'])
         return
 
     def setImageSize(self,
@@ -132,7 +139,7 @@ class DXFRenderer(DXFLoader):
         self.drawArc()
         return True
 
-    def render(self, wait_key=0):
+    def render(self):
         self.updateImageTrans()
         self.image = np.zeros((self.render_image_height, self.render_image_width, 3))
 
@@ -141,26 +148,16 @@ class DXFRenderer(DXFLoader):
             print("\t drawShape failed!")
             return False
 
-        cv2.imshow("DXFRenderer::render", self.image)
-        cv2.waitKey(wait_key)
+        cv2.imshow(self.config['window_name'], self.image)
         return True
 
 def demo():
-    dxf_file_path = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/test1.dxf"
-    debug = True
-    image_width = 1600
-    image_height = 900
-    free_width = 50
-    is_reverse_y = True
-    wait_key = 0
+    config = RENDER_ALL
 
-    dxf_renderer = DXFRenderer()
-    dxf_renderer.loadFile(dxf_file_path)
-
-    dxf_renderer.outputInfo(debug)
-
-    dxf_renderer.setImageSize(image_width, image_height, free_width, is_reverse_y)
-    dxf_renderer.render(wait_key)
+    dxf_renderer = DXFRenderer(config)
+    dxf_renderer.outputInfo()
+    dxf_renderer.render()
+    cv2.waitKey(0)
     return True
 
 if __name__ == "__main__":
