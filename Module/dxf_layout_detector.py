@@ -47,7 +47,11 @@ class DXFLayoutDetector(DXFRenderer):
             if valid_label is None:
                 continue
             line_k = line.k
-            if line_k not in valid_k_list:
+            if line_k in valid_k_list:
+                if line_k == 0:
+                    line.setLabel("Horizontal")
+                    continue
+                line.setLabel("Vertical")
                 continue
             abs_line_k = abs(line_k)
             if abs_line_k < k_0_error_max:
@@ -337,7 +341,8 @@ class DXFLayoutDetector(DXFRenderer):
 
     def drawShape(self):
 
-        #  self.drawLabel("Valid")
+        #  self.drawLabel("Horizontal")
+        #  self.drawLabel("Vertical")
         #  return True
 
         #  self.drawLabel("Cluster")
@@ -364,7 +369,7 @@ def demo_debug():
     renderer = DXFRenderer(config)
     renderer.render()
 
-    demo_with_edit_config(config, [['window_name', 'detect']])
+    #  demo_with_edit_config(config, [['window_name', 'detect']])
     demo_with_edit_config(config, [['max_dist_error', 0], ['window_name', 'err_0']])
     cv2.waitKey(0)
     return True
