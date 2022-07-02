@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from Data.label import Label
-from Data.point import Point
 from Data.bbox import BBox
 
 class Arc(Label):
@@ -12,7 +11,7 @@ class Arc(Label):
         self.radius = radius
         self.start_angle = start_angle
         self.end_angle = end_angle
-        self.flatten_point_list = [Point(point[0], point[1], point[2]) for point in flatten_point_list]
+        self.flatten_point_list = flatten_point_list
 
         self.bbox = BBox()
         self.update()

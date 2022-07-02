@@ -351,6 +351,24 @@ class DXFLayoutDetector(DXFRenderer):
         #  self.drawDoorRemovedLineCluster()
         return True
 
+def demo_with_edit_config(config, kv_list):
+    for k, v in kv_list:
+        config[k] = v
+    dxf_layout_detector = DXFLayoutDetector(config)
+    dxf_layout_detector.render()
+    return True
+
+def demo_debug():
+    config = LAYOUT_TEST1
+
+    renderer = DXFRenderer(config)
+    renderer.render()
+
+    demo_with_edit_config(config, [['window_name', 'detect']])
+    demo_with_edit_config(config, [['max_dist_error', 0], ['window_name', 'err_0']])
+    cv2.waitKey(0)
+    return True
+
 def demo():
     config = LAYOUT_TEST1
 

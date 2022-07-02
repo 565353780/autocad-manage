@@ -51,8 +51,15 @@ class DXFLoader(object):
 
         start = dxf.start
         end = dxf.end
-        new_line = Line(Point(start[0], start[1], start[2]),
-                        Point(end[0], end[1], end[2]))
+
+        start_point = Point(start[0], start[1], start[2])
+        end_point = Point(end[0], end[1], end[2])
+
+        # for 2-dim
+        start_point.z = 0
+        end_point.z = 0
+
+        new_line = Line(start_point, end_point)
         self.line_list.append(new_line)
         return True
 
@@ -86,7 +93,13 @@ class DXFLoader(object):
         start_angle = dxf.start_angle
         end_angle = dxf.end_angle
 
-        flatten_point_list = entity.flattening(radius / 100)
+        flattening = entity.flattening(radius / 100)
+        flatten_point_list = [Point(point[0], point[1], point[2]) for point in flattening]
+
+        # for 2-dim
+        for i in range(len(flatten_point_list)):
+            flatten_point_list[i].z = 0
+
         new_arc = Arc(Point(center[0], center[1], center[2]), radius,
                       start_angle, end_angle, flatten_point_list)
         self.arc_list.append(new_arc)
