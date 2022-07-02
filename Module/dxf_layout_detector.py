@@ -11,7 +11,9 @@ from Config.configs import \
 
 from Data.line import Line
 
-from Method.cross_check import isLineParallel, isPointInArcArea
+from Method.cross_check import \
+    isLineHorizontal, isLineVertical, \
+    isLineParallel, isPointInArcArea
 from Method.cluster import clusterLineByIdx
 from Method.dists import getPointDist2, getLineDist2
 
@@ -38,26 +40,19 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateValidLineHVOnly(self):
-        valid_k_list = [float("inf"), 0]
-        k_0_error_max = 1e-6
+        k_0_max = 1e-6
         k_inf_min = 1e6
 
         for line in self.line_list:
             valid_label = line.getLabel("Valid")
             if valid_label is None:
                 continue
-            line_k = line.k
-            if line_k in valid_k_list:
-                if line_k == 0:
-                    line.setLabel("Horizontal")
-                    continue
-                line.setLabel("Vertical")
-                continue
-            abs_line_k = abs(line_k)
-            if abs_line_k < k_0_error_max:
+
+            if isLineHorizontal(line, k_0_max):
                 line.setLabel("Horizontal")
                 continue
-            if abs_line_k > k_inf_min:
+
+            if isLineVertical(line, k_inf_min):
                 line.setLabel("Vertical")
         return True
 
@@ -98,28 +93,28 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateDoorArcList(self):
-        error_max = 10
+        error_max = 40
 
         max_radius = 0
-        min_radius = float('inf')
         door_arc_list = []
         for arc in self.arc_list:
             angles = abs(arc.end_angle - arc.start_angle)
-            if abs(angles - 90) <= error_max:
+            angles_error = min(abs(angles - 90), abs(angles - 270))
+            if angles_error <= error_max:
                 door_arc_list.append(arc)
                 max_radius = max(max_radius, arc.radius)
-                min_radius = min(min_radius, arc.radius)
 
-        mean_radius = (max_radius + min_radius) / 2.0
-
+        radius_min = 0.5 * max_radius
         for arc in door_arc_list:
-            if arc.radius < mean_radius:
+            if arc.radius < radius_min:
                 continue
             self.door_arc_list.append(arc)
         return True
 
     def updateDoorLineList(self):
-        angle_error_max = 10.0
+        angle_error_max = 5
+        k_0_max = 1e-6
+        k_inf_min = 1e6
 
         arc_line_pair_list = []
 
@@ -157,10 +152,22 @@ class DXFLayoutDetector(DXFRenderer):
                     second_min_dist_to_arc_line = first_min_dist_to_arc_line
                     first_line_idx = i
                     first_min_dist_to_arc_line = current_dist_to_door_line
+
                 first_min_dist_line = line_list[first_line_idx]
                 second_min_dist_line = line_list[second_line_idx]
 
-                if not isLineParallel(arc_line, first_min_dist_line, angle_error_max) or \
+                is_first_line_hv = isLineHorizontal(first_min_dist_line, k_0_max) or \
+                    isLineVertical(first_min_dist_line, k_inf_min)
+                is_second_line_hv = isLineHorizontal(second_min_dist_line, k_0_max) or \
+                    isLineVertical(second_min_dist_line, k_inf_min)
+
+                if not is_first_line_hv or not is_second_line_hv:
+                    continue
+
+                if not isLineParallel(first_min_dist_line, second_min_dist_line, angle_error_max):
+                    continue
+
+                if not isLineParallel(arc_line, first_min_dist_line, angle_error_max) and \
                         not isLineParallel(arc_line, second_min_dist_line, angle_error_max):
                     continue
 
@@ -248,18 +255,19 @@ class DXFLayoutDetector(DXFRenderer):
             return False
         return True
 
-    def drawLabel(self, label):
+    def drawLabel(self, label, color=None):
         value_color_dict = {}
         for line in self.line_list:
             value = line.getLabel(label)
             if value is None:
                 continue
-            if value not in value_color_dict.keys():
-                random_color = [randint(0, 255),
-                                randint(0, 255),
-                                randint(0, 255)]
-                value_color_dict[value] = random_color
-            color = value_color_dict[value]
+            if color is None:
+                if value not in value_color_dict.keys():
+                    random_color = [randint(0, 255),
+                                    randint(0, 255),
+                                    randint(0, 255)]
+                    value_color_dict[value] = random_color
+                color = value_color_dict[value]
             start_point_in_image = self.getImagePosition(line.start_point)
             end_point_in_image = self.getImagePosition(line.end_point)
             cv2.line(self.image,
@@ -288,19 +296,18 @@ class DXFLayoutDetector(DXFRenderer):
                          1, 4)
         return True
 
-    def drawOuterLineCluster(self):
-        draw_color = [255, 255, 255]
+    def drawOuterLineCluster(self, color):
         for line in self.outer_line_cluster.line_list:
             start_point_in_image = self.getImagePosition(line.start_point)
             end_point_in_image = self.getImagePosition(line.end_point)
             cv2.line(self.image,
                      (start_point_in_image.x, start_point_in_image.y),
                      (end_point_in_image.x, end_point_in_image.y),
-                     np.array(draw_color, dtype=np.float) / 255.0,
+                     np.array(color, dtype=np.float) / 255.0,
                      1, 4)
         return True
 
-    def drawDoorArcList(self):
+    def drawDoorArcList(self, color):
         for arc in self.door_arc_list:
             point_list = arc.flatten_point_list
             for i in range(len(point_list) - 1):
@@ -311,19 +318,18 @@ class DXFLayoutDetector(DXFRenderer):
                 cv2.line(self.image,
                          (current_point_in_image.x, current_point_in_image.y),
                          (next_point_in_image.x, next_point_in_image.y),
-                         np.array(self.arc_color, dtype=np.float) / 255.0,
+                         np.array(color, dtype=np.float) / 255.0,
                          1, 4)
         return True
 
-    def drawDoorLineList(self):
-        draw_color = [0, 0, 255]
+    def drawDoorLineList(self, color):
         for line in self.door_line_list:
             start_point_in_image = self.getImagePosition(line.start_point)
             end_point_in_image = self.getImagePosition(line.end_point)
             cv2.line(self.image,
                      (start_point_in_image.x, start_point_in_image.y),
                      (end_point_in_image.x, end_point_in_image.y),
-                     np.array(draw_color, dtype=np.float) / 255.0,
+                     np.array(color, dtype=np.float) / 255.0,
                      1, 4)
         return True
 
@@ -341,18 +347,12 @@ class DXFLayoutDetector(DXFRenderer):
 
     def drawShape(self):
 
-        #  self.drawLabel("Horizontal")
-        #  self.drawLabel("Vertical")
-        #  return True
+        #  self.drawLabel("Valid", [255, 255, 255])
 
-        #  self.drawLabel("Cluster")
-        #  return True
+        self.drawOuterLineCluster([0, 255, 0])
 
-        #  self.drawLineCluster()
-        self.drawOuterLineCluster()
-
-        self.drawDoorArcList()
-        self.drawDoorLineList()
+        self.drawDoorArcList([0, 0, 255])
+        self.drawDoorLineList([0, 0, 255])
         #  self.drawDoorRemovedLineCluster()
         return True
 
@@ -369,8 +369,7 @@ def demo_debug():
     renderer = DXFRenderer(config)
     renderer.render()
 
-    #  demo_with_edit_config(config, [['window_name', 'detect']])
-    demo_with_edit_config(config, [['max_dist_error', 0], ['window_name', 'err_0']])
+    demo_with_edit_config(config, [['window_name', 'detect']])
     cv2.waitKey(0)
     return True
 
