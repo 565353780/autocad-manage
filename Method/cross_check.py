@@ -23,6 +23,34 @@ def isBBoxCross(bbox_1, bbox_2, max_dist_error=0):
         return False
     return True
 
+def isLineHorizontal(line, k_0_max=0):
+    line_k = line.k
+    if line_k == 0:
+        return True
+
+    if k_0_max == 0:
+        return False
+
+    abs_line_k = abs(line_k)
+    if abs_line_k < k_0_max:
+        return True
+
+    return False
+
+def isLineVertical(line, k_inf_min=float('inf')):
+    line_k = line.k
+    if line_k == float('inf'):
+        return True
+
+    if k_inf_min == float('inf'):
+        return False
+
+    abs_line_k = abs(line_k)
+    if abs_line_k > k_inf_min:
+        return True
+
+    return False
+
 def isLineParallel(line_1, line_2, angle_error_max=0):
     if line_1.isPoint() or line_2.isPoint():
         print("[WARN][cross_check::isLineParallel]")
