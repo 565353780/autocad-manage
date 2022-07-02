@@ -66,7 +66,6 @@ def isLineOnSameLine(line_1, line_2):
     return False
 
 def isLineCross(line_1, line_2, max_dist_error=0):
-    return True
     dist_ss = getPointDist(line_1.start_point, line_2.start_point)
     if dist_ss == 0:
         return True
