@@ -5,6 +5,8 @@ from math import atan, atan2, pi
 
 from Data.shape import Line
 
+from Method.dists import getPointDist
+
 def cross(point_1, point_2, point_3):
     x_1 = point_2.x - point_1.x
     y_1 = point_2.y - point_1.y
@@ -63,7 +65,27 @@ def isLineOnSameLine(line_1, line_2):
         return True
     return False
 
-def isLineCross(line_1, line_2):
+def isLineCross(line_1, line_2, max_dist_error=0):
+    dist_ss = getPointDist(line_1.start_point, line_2.start_point)
+    if dist_ss == 0:
+        return True
+
+    dist_se = getPointDist(line_1.start_point, line_2.end_point)
+    if dist_se == 0:
+        return True
+
+    dist_es = getPointDist(line_1.end_point, line_2.start_point)
+    if dist_es == 0:
+        return True
+
+    dist_ee = getPointDist(line_1.end_point, line_2.end_point)
+    if dist_ee == 0:
+        return True
+
+    min_dist = min(dist_ss, dist_se, dist_es, dist_ee)
+    if min_dist <= max_dist_error:
+        return True
+
     if not isBBoxCross(line_1.bbox, line_2.bbox):
         return False
 
@@ -83,55 +105,25 @@ def isLineCross(line_1, line_2):
         return False
     return True
 
-def isLineCrossWithPool(inputs):
-    '''
-    Input: [line_1, line_2]
-    '''
-    if len(inputs) != 2:
-        print("[ERROR][cross_check::isLineCrossWithPool]")
-        print("\t inputs size != 2!")
-        return None
-    return isLineCross(inputs[0], inputs[1])
-
-def getLineCrossLineListNum(new_line, line_list):
+def getLineCrossLineListNum(new_line, line_list, max_dist_error):
     line_cross_line_list_num = 0
 
     for line in line_list:
-        if isLineCross(new_line, line):
+        if isLineCross(new_line, line, max_dist_error):
             line_cross_line_list_num += 1
     return line_cross_line_list_num
 
-def getLineCrossLineListNumWithPool(inputs):
-    '''
-    Input: [new_line, [line_1, line_2, ...]]
-    '''
-    if len(inputs) != 2:
-        print("[ERROR][cross_check::getLineCrossLineListNumWithPool]")
-        print("\t inputs size != 2!")
-        return None
-    return getLineCrossLineListNum(inputs[0], inputs[1])
-
-def isLineCrossLineList(new_line, line_list):
-    line_cross_line_list_num = getLineCrossLineListNum(new_line, line_list)
+def isLineCrossLineList(new_line, line_list, max_dist_error=0):
+    line_cross_line_list_num = getLineCrossLineListNum(new_line, line_list, max_dist_error)
     if line_cross_line_list_num == 0:
         return False
     return True
 
-def isLineListCross(line_list_1, line_list_2):
+def isLineListCross(line_list_1, line_list_2, max_dist_error=0):
     for line in line_list_1:
-        if isLineCrossLineList(line, line_list_2):
+        if isLineCrossLineList(line, line_list_2, max_dist_error):
             return True
     return False
-
-def isLineListCrossWithPool(inputs):
-    '''
-    Input: [[line_1_1, line_1_2, ...], [line_2_1, line_2_2, ...]]
-    '''
-    if len(inputs) != 2:
-        print("[ERROR][cross_check::isLineListCrossWithPool]")
-        print("\t inputs size != 2!")
-        return None
-    return isLineListCross(inputs[0], inputs[1])
 
 def isPointInArcArea(point, arc):
     point_line = Line(arc.center, point)
