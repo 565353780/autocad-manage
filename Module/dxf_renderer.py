@@ -17,6 +17,10 @@ class DXFRenderer(DXFLoader):
         self.circle_color = [0, 255, 255]
         self.arc_color = [0, 0, 255]
 
+        self.line_color = [255, 255, 255]
+        self.circle_color = [255, 255, 255]
+        self.arc_color = [255, 255, 255]
+
         self.image_width = None
         self.image_height = None
         self.free_width = None
