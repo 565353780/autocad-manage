@@ -15,11 +15,11 @@ def cross(point_1, point_2, point_3):
     cross_value = x_1 * y_2 - x_2 * y_1
     return cross_value
 
-def isBBoxCross(bbox_1, bbox_2):
-    if bbox_1.min_point.x > bbox_2.max_point.x or \
-            bbox_1.max_point.x < bbox_2.min_point.x or \
-            bbox_1.min_point.y > bbox_2.max_point.y or \
-            bbox_1.max_point.y < bbox_2.min_point.y:
+def isBBoxCross(bbox_1, bbox_2, max_dist_error=0):
+    if bbox_1.min_point.x > bbox_2.max_point.x + max_dist_error or \
+            bbox_1.max_point.x < bbox_2.min_point.x - max_dist_error or \
+            bbox_1.min_point.y > bbox_2.max_point.y + max_dist_error or \
+            bbox_1.max_point.y < bbox_2.min_point.y - max_dist_error:
         return False
     return True
 
@@ -66,6 +66,7 @@ def isLineOnSameLine(line_1, line_2):
     return False
 
 def isLineCross(line_1, line_2, max_dist_error=0):
+    return True
     dist_ss = getPointDist(line_1.start_point, line_2.start_point)
     if dist_ss == 0:
         return True
@@ -86,7 +87,7 @@ def isLineCross(line_1, line_2, max_dist_error=0):
     if min_dist <= max_dist_error:
         return True
 
-    if not isBBoxCross(line_1.bbox, line_2.bbox):
+    if not isBBoxCross(line_1.bbox, line_2.bbox, max_dist_error):
         return False
 
     if isLineParallel(line_1, line_2):
