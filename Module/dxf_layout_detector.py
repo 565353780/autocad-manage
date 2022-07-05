@@ -32,6 +32,8 @@ class DXFLayoutDetector(DXFRenderer):
         self.door_arc_list = []
         self.door_line_list = []
 
+        self.window_line_list = []
+
         self.detectLayout()
         return
 
@@ -263,6 +265,9 @@ class DXFLayoutDetector(DXFRenderer):
             door_idx += 1
         return True
 
+    def updateWindowLineList(self):
+        return True
+
     def detectLayout(self):
         self.circle_list = []
         self.updateBBox()
@@ -295,6 +300,12 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateDoorLineList failed!")
             return False
+        if not self.updateWindowLineList():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateWindowLineList failed!")
+            return False
+
+        self.outputLabel()
         return True
 
     def drawShape(self):
