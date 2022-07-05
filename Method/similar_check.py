@@ -25,25 +25,6 @@ def getMinConnectLineList(line_1, line_2):
     min_connect_line_list.append(Line(line_1.end_point, line_2.start_point))
     return min_connect_line_list
 
-def isSameLine(line_1, line_2, dist_error_max=0):
-    min_connect_line_1, min_connect_line_2 = getMinConnectLineList(line_1, line_2)
-
-    if min_connect_line_1.isPoint() and min_connect_line_2.isPoint():
-        return True
-
-    if dist_error_max == 0:
-        return False
-
-    connect_line_1_length = min_connect_line_1.getLength()
-    if connect_line_1_length > dist_error_max:
-        return False
-
-    connect_line_2_length = min_connect_line_2.getLength()
-    if connect_line_2_length > dist_error_max:
-        return False
-
-    return True
-
 def isLineConnectVertical(line_1, line_2, angle_error_max=0, dist_error_max=0):
     vertical_error_max = 10
 
@@ -58,13 +39,13 @@ def isLineConnectVertical(line_1, line_2, angle_error_max=0, dist_error_max=0):
 
     mean_angle = (line_1_angle + line_2_angle) / 2.0
 
-    if isSameLine(line_1, line_2, dist_error_max):
+    connect_line_1, connect_line_2 = getMinConnectLineList(line_1, line_2)
+    if connect_line_1.getLength() < dist_error_max and connect_line_2.getLength() < dist_error_max:
         #  print("[WARN][similar_check::isLineConnectVertical]")
         #  print("\t two lines are the same line! seem as not connect vertical by default.")
         return False
 
-    connect_line_1, connect_line_2 = getMinConnectLineList(line_1, line_2)
-    if not connect_line_1.isPoint():
+    if connect_line_1.getLength() >= dist_error_max:
         connect_line_1_angle = connect_line_1.getAngle()
         angle_diff_1 = abs(mean_angle - connect_line_1_angle - 270)
         angle_diff_2 = abs(mean_angle - connect_line_1_angle - 90)
@@ -73,7 +54,7 @@ def isLineConnectVertical(line_1, line_2, angle_error_max=0, dist_error_max=0):
         if angle_diff > angle_error_max:
             return False
 
-    if not connect_line_2.isPoint():
+    if connect_line_2.getLength() >= dist_error_max:
         connect_line_2_angle = connect_line_2.getAngle()
         angle_diff_1 = abs(mean_angle - connect_line_2_angle - 270)
         angle_diff_2 = abs(mean_angle - connect_line_2_angle - 90)
@@ -101,9 +82,8 @@ def isLineSimilar(line_1, line_2, length_error_ratio_max=0, angle_error_max=0, d
     if not isLineConnectVertical(line_1, line_2, angle_error_max, dist_error_max):
         return False
 
-    min_length = max(line_1_length, line_2_length)
     line_dist = getLineDist(line_1, line_2)
-    if line_dist > min_length / 2.0:
+    if line_dist > min_length:
         return False
 
     return True
