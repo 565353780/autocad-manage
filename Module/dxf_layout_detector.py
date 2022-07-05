@@ -434,12 +434,16 @@ class DXFLayoutDetector(DXFRenderer):
         for _, connect_window_line_list in connect_window_dict.items():
             if isLineListUniform(connect_window_line_list, self.config['uniform_dist_var_min']):
                 for line in connect_window_line_list:
-                    line.setLabel("UniformDistWindow")
+                    line.setLabel("UniformDistWindow", uniform_dist_window_idx)
                 uniform_dist_window_idx += 1
                 continue
             for line in connect_window_line_list:
-                line.setLabel("RandomDistWindow")
+                line.setLabel("RandomDistWindow", random_dist_window_idx)
             random_dist_window_idx += 1
+        return True
+
+    def updateConnectWallWindowForUniformWindowLine(self):
+        uniform_window_dict = getShapeListDictWithLabel(self.line_list, "UniformDistWindow")
         return True
 
     def detectLayout(self):
@@ -508,12 +512,12 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
-        self.drawLineList(getShapeListWithLabel(self.line_list, "Layout"), [255, 255, 255])
+        self.drawLineLabel("Layout", [255, 255, 255])
+        self.drawArcLabel("Door", [0, 0, 255])
+        self.drawLineLabel("Door", [0, 0, 255])
 
-        self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
-        self.drawLineList(getShapeListWithLabel(self.line_list, "Door"), [0, 0, 255])
-
-        self.drawLineList(getShapeListWithLabel(self.line_list, "UniformDistWindow"), [0, 255, 0])
+        #  self.drawLineList(getShapeListWithLabel(self.line_list, "ConnectWindow"), [0, 255, 0])
+        self.drawLineLabel("ConnectWindow")
         return True
 
 def demo_with_edit_config(config, kv_list):
@@ -524,7 +528,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['4']
+    config = CONFIG_COLLECTION['3']
 
     renderer = DXFRenderer(config)
     renderer.render()
