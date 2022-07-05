@@ -10,7 +10,7 @@ from Data.line_cluster import LineCluster
 
 from Method.cross_check import \
     isLineHorizontal, isLineVertical, \
-    isLineParallel, isPointInArcArea, \
+    isLineParallel, isLineListCross, isPointInArcArea, \
     getPointCrossLineListNum
 from Method.cluster import \
     clusterLineByCross, clusterLineBySimilar
@@ -284,21 +284,58 @@ class DXFLayoutDetector(DXFRenderer):
             print("\t clusterLineBySimilar failed!")
         return True
 
-    def updateWindowForSimilarClusterLine(self):
+    def updateMaybeWindowForSimilarClusterLine(self):
         window_line_num_min = 3
 
         similar_cluster_dict = getShapeListDictWithLabel(self.line_list, "SimilarCluster")
 
         window_idx = 0
-        for _, item in similar_cluster_dict.items():
-            if len(item) < window_line_num_min:
+        for _, line_list in similar_cluster_dict.items():
+            if len(line_list) < window_line_num_min:
                 continue
-            for line in item:
+            for line in line_list:
                 line.setLabel("MaybeWindow", window_idx)
             window_idx += 1
 
         for line in self.line_list:
             line.removeLabel("SimilarCluster", True)
+        return True
+
+    def updateNoCrossWindowForMaybeWindowLine(self):
+        maybe_window_dict = getShapeListDictWithLabel(self.line_list, "MaybeWindow")
+
+        cross_window_key_list = []
+        for key_1, line_list_1 in maybe_window_dict.items():
+            if key_1 in cross_window_key_list:
+                continue
+
+            find_cross_line_list = False
+            for key_2, line_list_2 in maybe_window_dict.items():
+                if key_1 == key_2:
+                    continue
+                if key_2 in cross_window_key_list:
+                    continue
+                if not isLineListCross(line_list_1, line_list_2):
+                    continue
+                cross_window_key_list.append(key_2)
+                find_cross_line_list = True
+
+            if find_cross_line_list:
+                cross_window_key_list.append(key_1)
+
+        window_idx = 0
+        for key, line_list in maybe_window_dict.items():
+            if key in cross_window_key_list:
+                continue
+            for line in line_list:
+                line.setLabel("NoCrossWindow", window_idx)
+            window_idx += 1
+
+        for line in self.line_list:
+            line.removeLabel("MaybeWindow", True)
+        return True
+
+    def updateWindowForNoCrossWindowLine(self):
         return True
 
     def detectLayout(self):
@@ -337,14 +374,25 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateSimilarClusterIdxForLayoutLine failed!")
             return False
-        if not self.updateWindowForSimilarClusterLine():
+        if not self.updateMaybeWindowForSimilarClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateWindowForLayoutLine failed!")
             return False
+        if not self.updateNoCrossWindowForMaybeWindowLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateNoCrossWindowForMaybeWindowLine failed!")
+            return False
+        if not self.updateWindowForNoCrossWindowLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateWindowForNoCrossWindowLine failed!")
+            return False
 
-        self.outputLabel(["Valid",
-                          "Horizontal", "Vertical",
-                          "CrossCluster"])
+        self.outputLabel([
+            "Valid",
+            "Horizontal", "Vertical",
+            "CrossCluster",
+            "SingleConnect",
+        ])
         return True
 
     def drawShape(self):
@@ -353,9 +401,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
         self.drawLineList(getShapeListWithLabel(self.line_list, "Door"), [0, 0, 255])
 
-        self.drawLineList(getShapeListWithLabel(self.line_list, "SingleConnect"), [255, 0, 0])
-
-        self.drawLineList(getShapeListWithLabel(self.line_list, "MaybeWindow"), [0, 255, 0])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "Window"), [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):
@@ -366,7 +412,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['test1']
+    config = CONFIG_COLLECTION['3']
 
     renderer = DXFRenderer(config)
     renderer.render()
