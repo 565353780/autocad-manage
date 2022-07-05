@@ -26,35 +26,6 @@ def getConnectLinePair(line_list):
         line_list[max_dist_line_idx_pair[0]], line_list[max_dist_line_idx_pair[1]])
     return connect_line_pair
 
-def isLineConnectInLineList(line, line_list, dist_error_max=0):
-    sample_num = 4
-
-    start_x = line.start_point.x
-    start_y = line.start_point.y
-    start_z = line.start_point.z
-    end_x = line.end_point.x
-    end_y = line.end_point.y
-    end_z = line.end_point.z
-
-    for i in range(1, sample_num + 1):
-        current_step = 1.0 * i / (sample_num + 1)
-        current_point = Point(start_x + current_step * (end_x - start_x),
-                              start_y + current_step * (end_y - start_y),
-                              start_z + current_step * (end_z - start_z))
-        if not isPointCrossLineList(current_point, line_list, dist_error_max):
-            return False
-    return True
-
-def isLineListConnectInAllLineList(line_list, all_line_list, dist_error_max=0):
-    connect_line_1, connect_line_2 = getConnectLinePair(line_list)
-
-    if not isLineConnectInLineList(connect_line_1, all_line_list, dist_error_max):
-        return False
-
-    if not isLineConnectInLineList(connect_line_2, all_line_list, dist_error_max):
-        return False
-    return True
-
 def getSortedLineIdxList(line_list):
     if len(line_list) < 3:
         return [i for i in range(len(line_list))]
@@ -87,6 +58,40 @@ def getSortedLineIdxList(line_list):
 
     sorted_line_idx_list.append(fix_line_idx)
     return sorted_line_idx_list
+
+def isLineConnectInLineList(line, line_list, dist_error_max=0):
+    sample_num = 4
+
+    start_x = line.start_point.x
+    start_y = line.start_point.y
+    start_z = line.start_point.z
+    end_x = line.end_point.x
+    end_y = line.end_point.y
+    end_z = line.end_point.z
+
+    for i in range(1, sample_num + 1):
+        current_step = 1.0 * i / (sample_num + 1)
+        current_point = Point(start_x + current_step * (end_x - start_x),
+                              start_y + current_step * (end_y - start_y),
+                              start_z + current_step * (end_z - start_z))
+        if not isPointCrossLineList(current_point, line_list, dist_error_max):
+            return False
+    return True
+
+def isLineListConnectInAllLineList(line_list, all_line_list, dist_error_max=0):
+    sorted_line_idx_list = getSortedLineIdxList(line_list)
+
+    for i in range(len(line_list) - 1):
+        connect_line_1, connect_line_2 = getMinConnectLineList(
+            line_list[sorted_line_idx_list[i]],
+            line_list[sorted_line_idx_list[i + 1]])
+        if not isLineConnectInLineList(connect_line_1, all_line_list, dist_error_max):
+            return False
+
+        if not isLineConnectInLineList(connect_line_2, all_line_list, dist_error_max):
+            return False
+
+    return True
 
 def isLineListUniform(line_list, var_min=1000):
     if len(line_list) < 3:
