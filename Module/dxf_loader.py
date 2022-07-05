@@ -250,7 +250,6 @@ class DXFLoader(object):
 
         #  for entity in self.msp.query("LINE"):
             #  self.print_entity(entity, True)
-
         return True
 
     def outputLayout(self):
