@@ -10,7 +10,8 @@ from Data.line_cluster import LineCluster
 
 from Method.cross_check import \
     isLineHorizontal, isLineVertical, \
-    isLineParallel, isLineListCross, isPointInArcArea, \
+    isLineParallel, isLineListOnSameLines, \
+    isLineListCross, isPointInArcArea, \
     getPointCrossLineListNum
 from Method.cluster import \
     clusterLineByCross, clusterLineBySimilar
@@ -317,6 +318,10 @@ class DXFLayoutDetector(DXFRenderer):
                     continue
                 if not isLineListCross(line_list_1, line_list_2):
                     continue
+                if isLineListOnSameLines(line_list_1, line_list_2,
+                                         self.config['angle_error_max'],
+                                         self.config['dist_error_max']):
+                    continue
                 cross_window_key_list.append(key_2)
                 find_cross_line_list = True
 
@@ -401,7 +406,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
         self.drawLineList(getShapeListWithLabel(self.line_list, "Door"), [0, 0, 255])
 
-        self.drawLineList(getShapeListWithLabel(self.line_list, "Window"), [0, 255, 0])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "NoCrossWindow"), [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):
@@ -412,7 +417,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['3']
+    config = CONFIG_COLLECTION['test1']
 
     renderer = DXFRenderer(config)
     renderer.render()
