@@ -10,8 +10,6 @@ class Circle(Label):
         self.center = center
         self.radius = radius
 
-        self.label_dict = {}
-
         self.bbox = BBox()
         self.update()
         return
@@ -50,5 +48,13 @@ class Circle(Label):
             return True
 
         self.label += "_" + new_label
+        return True
+
+    def outputInfo(self, info_level=0):
+        line_start = "\t" * info_level
+        print(line_start + "[Circle]")
+        print(line_start + "\t center:")
+        self.center.outputInfo(info_level + 1)
+        print(line_start + "\t radius =", self.radius)
         return True
 

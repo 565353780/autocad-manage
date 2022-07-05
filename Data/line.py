@@ -100,3 +100,15 @@ class Line(Label):
         middle_point = Point(x_mean, y_mean, z_mean)
         return middle_point
 
+    def outputInfo(self, info_level=0):
+        line_start = "\t" * info_level
+        print(line_start + "[Line]")
+        print(line_start + "\t start_point:")
+        self.start_point.outputInfo(info_level + 1)
+        print(line_start + "\t end_point:")
+        self.end_point.outputInfo(info_level + 1)
+        print(line_start + "\t diff_point :")
+        self.diff_point.outputInfo(info_level + 1)
+        print(line_start + "\t k =", self.k)
+        return True
+

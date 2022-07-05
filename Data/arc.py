@@ -47,3 +47,18 @@ class Arc(Label):
         self.label += "_" + new_label
         return True
 
+    def outputInfo(self, info_level=0):
+        line_start = "\t" * info_level
+        print(line_start + "[Arc]")
+        print(line_start + "\t center:")
+        self.center.outputInfo(info_level + 1)
+        print(line_start + "\t radius =", self.radius)
+        print(line_start + "\t angle = [" + \
+              str(self.start_angle) + "," + \
+              str(self.end_angle) + "]")
+        print(line_start + "\t start_point:")
+        self.flatten_point_list[0].outputInfo(info_level + 1)
+        print(line_start + "\t end_point:")
+        self.flatten_point_list[-1].outputInfo(info_level + 1)
+        return True
+
