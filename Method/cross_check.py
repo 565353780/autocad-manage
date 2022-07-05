@@ -34,12 +34,15 @@ def isPointCrossLine(point, line, max_dist_error=0):
     if not isPointInBBox(point, line.bbox, max_dist_error):
         return False
 
-    if getPointDist(point, line.start_point) <= max_dist_error or \
-            getPointDist(point, line.end_point) <= max_dist_error:
+    point_to_start_point_dist = getPointDist(point , line.start_point)
+    if point_to_start_point_dist <= max_dist_error:
+        return True
+
+    point_to_end_point_dist = getPointDist(point , line.end_point)
+    if point_to_end_point_dist <= max_dist_error:
         return True
 
     point_line_cross = cross(line.start_point, line.end_point, point)
-
     point_dist_to_line = abs(point_line_cross) / line.getLength()
 
     if point_dist_to_line <= max_dist_error:

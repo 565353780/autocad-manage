@@ -92,12 +92,10 @@ class DXFLayoutDetector(DXFRenderer):
     def updateOuterLineCluster(self):
         #  self.updateOuterLineClusterByArea()
         self.updateOuterLineClusterByLineNum()
-
         return True
 
     def updateSingleConnectLineRemovedLineList(self):
-        self.single_connect_removed_line_list = \
-            self.outer_line_cluster.line_list
+        self.single_connect_removed_line_list = self.outer_line_cluster.line_list
         last_line_list = []
 
         find_single_connect_line = True
@@ -109,7 +107,7 @@ class DXFLayoutDetector(DXFRenderer):
 
             for line in last_line_list:
                 start_point_cross_line_num = getPointCrossLineListNum(
-                    line.start_point, last_line_list, self.config['max_dist_error'])
+                    line.start_point, last_line_list, self.config['max_dist_error'] * 1000)
                 if start_point_cross_line_num < 2:
                     find_single_connect_line = True
                     self.single_connect_point_list.append(line.start_point)
@@ -117,7 +115,7 @@ class DXFLayoutDetector(DXFRenderer):
                     continue
 
                 end_point_cross_line_num = getPointCrossLineListNum(
-                    line.end_point, last_line_list, self.config['max_dist_error'])
+                    line.end_point, last_line_list, self.config['max_dist_error'] * 1000)
                 if end_point_cross_line_num < 2:
                     find_single_connect_line = True
                     self.single_connect_point_list.append(line.end_point)
@@ -299,11 +297,16 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
+        self.drawLineList(self.outer_line_cluster.line_list, [255, 255, 255])
+
         self.drawLineList(self.single_connect_removed_line_list, [255, 255, 255])
 
         self.drawArcList(self.door_arc_list, [0, 0, 255])
         self.drawLineList(self.door_line_list, [0, 0, 255])
-        #  self.drawDoorRemovedLineCluster()
+
+        self.drawPointList(self.single_connect_point_list, [0, 0, 255])
+        self.drawLineList(self.single_connect_line_list, [0, 255, 0])
+
         return True
 
 def demo_with_edit_config(config, kv_list):

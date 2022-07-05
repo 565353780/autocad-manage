@@ -107,7 +107,7 @@ class DXFRenderer(DXFLoader):
                    (point_in_image.x, point_in_image.y),
                    1,
                    np.array(color, dtype=np.float) / 255.0,
-                   1, 8, 0)
+                   4)
         return True
 
     def drawLine(self, line, color):
