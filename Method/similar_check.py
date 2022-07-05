@@ -25,32 +25,65 @@ def getMinConnectLineList(line_1, line_2):
     min_connect_line_list.append(Line(line_1.end_point, line_2.start_point))
     return min_connect_line_list
 
-def isLineConnectVertical(line_1, line_2, angle_error_max=0):
+def isSameLine(line_1, line_2, dist_error_max=0):
+    min_connect_line_1, min_connect_line_2 = getMinConnectLineList(line_1, line_2)
+
+    if min_connect_line_1.isPoint() and min_connect_line_2.isPoint():
+        return True
+
+    if dist_error_max == 0:
+        return False
+
+    connect_line_1_length = min_connect_line_1.getLength()
+    if connect_line_1_length > dist_error_max:
+        return False
+
+    connect_line_2_length = min_connect_line_2.getLength()
+    if connect_line_2_length > dist_error_max:
+        return False
+
+    return True
+
+def isLineConnectVertical(line_1, line_2, angle_error_max=0, dist_error_max=0):
+    vertical_error_max = 10
+
     line_1_angle = line_1.getAngle()
     line_2_angle = line_2.getAngle()
+
+    max_angle = max(line_1_angle, line_2_angle)
+    min_angle = min(line_1_angle, line_2_angle)
+
+    if min_angle <= 90 + vertical_error_max and max_angle >= 90 - vertical_error_max:
+        min_angle += 180
+
     mean_angle = (line_1_angle + line_2_angle) / 2.0
-    print("!!!!")
-    print(line_1_angle)
-    print(line_2_angle)
-    print(mean_angle)
-    print("!!!!")
+
+    if isSameLine(line_1, line_2, dist_error_max):
+        #  print("[WARN][similar_check::isLineConnectVertical]")
+        #  print("\t two lines are the same line! seem as not connect vertical by default.")
+        return False
 
     connect_line_1, connect_line_2 = getMinConnectLineList(line_1, line_2)
     if not connect_line_1.isPoint():
         connect_line_1_angle = connect_line_1.getAngle()
-        angle_diff = abs(mean_angle - connect_line_1_angle)
+        angle_diff_1 = abs(mean_angle - connect_line_1_angle - 270)
+        angle_diff_2 = abs(mean_angle - connect_line_1_angle - 90)
+        angle_diff_3 = abs(mean_angle - connect_line_1_angle + 90)
+        angle_diff = min(angle_diff_1, angle_diff_2, angle_diff_3)
         if angle_diff > angle_error_max:
             return False
 
     if not connect_line_2.isPoint():
         connect_line_2_angle = connect_line_2.getAngle()
-        angle_diff = abs(mean_angle - connect_line_2_angle)
+        angle_diff_1 = abs(mean_angle - connect_line_2_angle - 270)
+        angle_diff_2 = abs(mean_angle - connect_line_2_angle - 90)
+        angle_diff_3 = abs(mean_angle - connect_line_2_angle + 90)
+        angle_diff = min(angle_diff_1, angle_diff_2, angle_diff_3)
         if angle_diff > angle_error_max:
             return False
-
     return True
 
-def isLineSimilar(line_1, line_2, length_error_max=0, angle_error_max=0):
+def isLineSimilar(line_1, line_2, length_error_ratio_max=0, angle_error_max=0, dist_error_max=0):
     if line_1.isPoint() or line_2.isPoint():
         print("[WARN][similar_check::isLineSimilar]")
         print("\t input line contains point! seem as not similar by default.")
@@ -58,26 +91,29 @@ def isLineSimilar(line_1, line_2, length_error_max=0, angle_error_max=0):
 
     line_1_length = line_1.getLength()
     line_2_length = line_2.getLength()
-    if abs(line_1_length - line_2_length) > length_error_max:
+    min_length = min(line_1_length, line_2_length)
+    if abs(line_1_length - line_2_length) > min_length * length_error_ratio_max:
         return False
 
     if not isLineParallel(line_1, line_2, angle_error_max):
         return False
 
-    if not isLineConnectVertical(line_1, line_2, angle_error_max):
+    if not isLineConnectVertical(line_1, line_2, angle_error_max, dist_error_max):
         return False
 
-    mean_length = (line_1_length + line_2_length) / 2.0
+    min_length = max(line_1_length, line_2_length)
     line_dist = getLineDist(line_1, line_2)
-    if line_dist > mean_length / 2.0:
+    if line_dist > min_length / 2.0:
         return False
 
     return True
 
-def isLineListSimilar(line_list_1, line_list_2, length_error_max=0, angle_error_max=0):
+def isLineListSimilar(line_list_1, line_list_2,
+                      length_error_ratio_max=0, angle_error_max=0, dist_error_max=0):
     for line_1 in line_list_1:
         for line_2 in line_list_2:
-            if not isLineSimilar(line_1, line_2, length_error_max, angle_error_max):
+            if not isLineSimilar(line_1, line_2,
+                                 length_error_ratio_max, angle_error_max, dist_error_max):
                 return False
     return True
 

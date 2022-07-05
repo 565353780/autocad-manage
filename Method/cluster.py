@@ -80,7 +80,8 @@ def clusterLineByCross(line_list, cluster_label_list, max_dist_error=0):
             line_list[line_idx].setLabel("CrossCluster", i)
     return True
 
-def clusterLineBySimilar(line_list, cluster_label_list, length_error_max=0, angle_error_max=0):
+def clusterLineBySimilar(line_list, cluster_label_list,
+                         length_error_max=0, angle_error_max=0, dist_error_max=0):
     last_line_idx_list_list = []
     line_idx_list_list = []
     for i in range(len(line_list)):
@@ -102,7 +103,7 @@ def clusterLineBySimilar(line_list, cluster_label_list, length_error_max=0, angl
                 last_line_list = [line_list[j] for j in last_line_idx_list]
                 current_line_list = [line_list[j] for j in line_idx_list_list[i]]
                 if isLineListSimilar(last_line_list, current_line_list,
-                                     length_error_max, angle_error_max):
+                                     length_error_max, angle_error_max, dist_error_max):
                     line_list_cross = True
                     line_idx_list_list[i] += last_line_idx_list
                     break

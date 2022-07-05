@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from math import atan, atan2, pi
+from math import atan2, pi
 
 from Data.shape import Line
 
@@ -86,6 +86,8 @@ def isLineVertical(line, k_inf_min=float('inf')):
     return False
 
 def isLineParallel(line_1, line_2, angle_error_max=0):
+    vertical_error_max = 10
+
     if line_1.isPoint() or line_2.isPoint():
         print("[WARN][cross_check::isLineParallel]")
         print("\t one of line is a point! set this case as parallel by default")
@@ -100,15 +102,13 @@ def isLineParallel(line_1, line_2, angle_error_max=0):
     if angle_error_max == 0:
         return False
 
-    line_1_rad = atan(line_1_k)
-    line_2_rad = atan(line_2_k)
+    line_1_angle = line_1.getAngle()
+    line_2_angle = line_2.getAngle()
 
-    rad_diff = abs(line_1_rad - line_2_rad)
-    rad_diff_to_pi = abs(rad_diff - pi)
+    angle_diff_1 = abs(line_1_angle - line_2_angle)
+    angle_diff_2 = abs(line_1_angle - line_2_angle - 180)
 
-    rad_diff = min(rad_diff, rad_diff_to_pi)
-
-    angle_diff = rad_diff * 180.0 / pi
+    angle_diff = min(angle_diff_1, angle_diff_2)
 
     if angle_diff < angle_error_max:
         return True
