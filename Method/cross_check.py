@@ -86,8 +86,6 @@ def isLineVertical(line, k_inf_min=float('inf')):
     return False
 
 def isLineParallel(line_1, line_2, angle_error_max=0):
-    vertical_error_max = 10
-
     if line_1.isPoint() or line_2.isPoint():
         print("[WARN][cross_check::isLineParallel]")
         print("\t one of line is a point! set this case as parallel by default")
@@ -114,20 +112,57 @@ def isLineParallel(line_1, line_2, angle_error_max=0):
         return True
     return False
 
-def isLineOnSameLine(line_1, line_2):
-    if not isLineParallel(line_1, line_2):
+def isLineOnSameLine(line_1, line_2, angle_error_max=0, dist_error_max=0):
+    if not isLineParallel(line_1, line_2, angle_error_max):
         return False
 
     line_11_to_21 = Line(line_1.start_point, line_2.start_point)
 
-    if line_11_to_21.isPoint():
+    if line_11_to_21.getLength() <= dist_error_max:
         return True
 
-    if isLineParallel(line_1, line_11_to_21):
+    if isLineParallel(line_1, line_11_to_21, angle_error_max):
         return True
     return False
 
-def isLineCross(line_1, line_2, dist_error_max=0):
+def isLineListOnSameLines(line_list_1, line_list_2, angle_error_max=0, dist_error_max=0):
+    for line_1 in line_list_1:
+        for line_2 in line_list_2:
+            if not isLineParallel(line_1, line_2, angle_error_max):
+                return False
+
+    is_line_list_2_contain_line_list_1 = True
+    for line_1 in line_list_1:
+        find_same_line = False
+        for line_2 in line_list_2:
+            if isLineOnSameLine(line_1, line_2, angle_error_max, dist_error_max):
+                find_same_line = True
+                break
+
+        if not find_same_line:
+            is_line_list_2_contain_line_list_1 = False
+            break
+
+    if is_line_list_2_contain_line_list_1:
+        return True
+
+    is_line_list_1_contain_line_list_2 = True
+    for line_2 in line_list_2:
+        find_same_line = False
+        for line_1 in line_list_1:
+            if isLineOnSameLine(line_2, line_1, angle_error_max, dist_error_max):
+                find_same_line = True
+                break
+
+        if not find_same_line:
+            is_line_list_1_contain_line_list_2 = False
+            break
+
+    if is_line_list_1_contain_line_list_2:
+        return True
+    return False
+
+def isLineCross(line_1, line_2, dist_error_max=0, angle_error_max=0):
     dist_ss = getPointDist(line_1.start_point, line_2.start_point)
     if dist_ss == 0:
         return True
@@ -151,8 +186,8 @@ def isLineCross(line_1, line_2, dist_error_max=0):
     if not isBBoxCross(line_1.bbox, line_2.bbox, dist_error_max):
         return False
 
-    if isLineParallel(line_1, line_2):
-        if isLineOnSameLine(line_1, line_2):
+    if isLineParallel(line_1, line_2, angle_error_max):
+        if isLineOnSameLine(line_1, line_2, angle_error_max, dist_error_max):
             return True
         return False
 
