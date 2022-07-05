@@ -295,6 +295,8 @@ class DXFLayoutDetector(DXFRenderer):
                 line.setLabel("MaybeWindow", window_idx)
             window_idx += 1
 
+        for line in self.line_list:
+            line.removeLabel("SimilarCluster", True)
         return True
 
     def detectLayout(self):
@@ -338,8 +340,9 @@ class DXFLayoutDetector(DXFRenderer):
             print("\t updateWindowForLayoutLine failed!")
             return False
 
-        self.outputLabel(["Valid", "Horizontal", "Vertical",
-                          "CrossCluster", "SimilarCluster"])
+        self.outputLabel(["Valid",
+                          "Horizontal", "Vertical",
+                          "CrossCluster"])
         return True
 
     def drawShape(self):
