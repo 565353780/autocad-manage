@@ -15,45 +15,45 @@ def cross(point_1, point_2, point_3):
     cross_value = x_1 * y_2 - x_2 * y_1
     return cross_value
 
-def isBBoxCross(bbox_1, bbox_2, max_dist_error=0):
-    if bbox_1.min_point.x > bbox_2.max_point.x + max_dist_error or \
-            bbox_1.max_point.x < bbox_2.min_point.x - max_dist_error or \
-            bbox_1.min_point.y > bbox_2.max_point.y + max_dist_error or \
-            bbox_1.max_point.y < bbox_2.min_point.y - max_dist_error:
+def isBBoxCross(bbox_1, bbox_2, dist_error_max=0):
+    if bbox_1.min_point.x > bbox_2.max_point.x + dist_error_max or \
+            bbox_1.max_point.x < bbox_2.min_point.x - dist_error_max or \
+            bbox_1.min_point.y > bbox_2.max_point.y + dist_error_max or \
+            bbox_1.max_point.y < bbox_2.min_point.y - dist_error_max:
         return False
     return True
 
-def isPointInBBox(point, bbox, max_dist_error=0):
-    if bbox.min_point.x - max_dist_error <= point.x <= bbox.max_point.x + max_dist_error and \
-            bbox.min_point.y - max_dist_error <= point.y <= bbox.max_point.y + max_dist_error and \
-            bbox.min_point.z - max_dist_error <= point.z <= bbox.max_point.z + max_dist_error:
+def isPointInBBox(point, bbox, dist_error_max=0):
+    if bbox.min_point.x - dist_error_max <= point.x <= bbox.max_point.x + dist_error_max and \
+            bbox.min_point.y - dist_error_max <= point.y <= bbox.max_point.y + dist_error_max and \
+            bbox.min_point.z - dist_error_max <= point.z <= bbox.max_point.z + dist_error_max:
         return True
     return False
 
-def isPointCrossLine(point, line, max_dist_error=0):
-    if not isPointInBBox(point, line.bbox, max_dist_error):
+def isPointCrossLine(point, line, dist_error_max=0):
+    if not isPointInBBox(point, line.bbox, dist_error_max):
         return False
 
     point_to_start_point_dist = getPointDist(point , line.start_point)
-    if point_to_start_point_dist <= max_dist_error:
+    if point_to_start_point_dist <= dist_error_max:
         return True
 
     point_to_end_point_dist = getPointDist(point , line.end_point)
-    if point_to_end_point_dist <= max_dist_error:
+    if point_to_end_point_dist <= dist_error_max:
         return True
 
     point_line_cross = cross(line.start_point, line.end_point, point)
     point_dist_to_line = abs(point_line_cross) / line.getLength()
 
-    if point_dist_to_line <= max_dist_error:
+    if point_dist_to_line <= dist_error_max:
         return True
     return False
 
-def getPointCrossLineListNum(point, line_list, max_dist_error=0):
+def getPointCrossLineListNum(point, line_list, dist_error_max=0):
     point_cross_line_list_num = 0
 
     for line in line_list:
-        if isPointCrossLine(point, line, max_dist_error):
+        if isPointCrossLine(point, line, dist_error_max):
             point_cross_line_list_num += 1
     return point_cross_line_list_num
 
@@ -127,7 +127,7 @@ def isLineOnSameLine(line_1, line_2):
         return True
     return False
 
-def isLineCross(line_1, line_2, max_dist_error=0):
+def isLineCross(line_1, line_2, dist_error_max=0):
     dist_ss = getPointDist(line_1.start_point, line_2.start_point)
     if dist_ss == 0:
         return True
@@ -145,10 +145,10 @@ def isLineCross(line_1, line_2, max_dist_error=0):
         return True
 
     min_dist = min(dist_ss, dist_se, dist_es, dist_ee)
-    if min_dist <= max_dist_error:
+    if min_dist <= dist_error_max:
         return True
 
-    if not isBBoxCross(line_1.bbox, line_2.bbox, max_dist_error):
+    if not isBBoxCross(line_1.bbox, line_2.bbox, dist_error_max):
         return False
 
     if isLineParallel(line_1, line_2):
@@ -167,23 +167,23 @@ def isLineCross(line_1, line_2, max_dist_error=0):
         return False
     return True
 
-def getLineCrossLineListNum(new_line, line_list, max_dist_error):
+def getLineCrossLineListNum(new_line, line_list, dist_error_max):
     line_cross_line_list_num = 0
 
     for line in line_list:
-        if isLineCross(new_line, line, max_dist_error):
+        if isLineCross(new_line, line, dist_error_max):
             line_cross_line_list_num += 1
     return line_cross_line_list_num
 
-def isLineCrossLineList(new_line, line_list, max_dist_error=0):
-    line_cross_line_list_num = getLineCrossLineListNum(new_line, line_list, max_dist_error)
+def isLineCrossLineList(new_line, line_list, dist_error_max=0):
+    line_cross_line_list_num = getLineCrossLineListNum(new_line, line_list, dist_error_max)
     if line_cross_line_list_num == 0:
         return False
     return True
 
-def isLineListCross(line_list_1, line_list_2, max_dist_error=0):
+def isLineListCross(line_list_1, line_list_2, dist_error_max=0):
     for line in line_list_1:
-        if isLineCrossLineList(line, line_list_2, max_dist_error):
+        if isLineCrossLineList(line, line_list_2, dist_error_max):
             return True
     return False
 
