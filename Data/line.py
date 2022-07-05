@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from math import sqrt
+from math import sqrt, atan, pi
 
 from Data.label import Label
 from Data.point import Point
@@ -72,6 +72,21 @@ class Line(Label):
         y_diff = self.end_point.y - self.start_point.y
         length2 = x_diff * x_diff + y_diff * y_diff
         return sqrt(length2)
+
+    def getRad(self):
+        if self.k is None:
+            return None
+
+        rad = atan(self.k)
+        return rad
+
+    def getAngle(self):
+        if self.k is None:
+            return None
+
+        rad = atan(self.k)
+        angle = rad * 180.0 / pi
+        return angle
 
     def isPoint(self):
         if self.bbox.diff_point.x == 0 and self.bbox.diff_point.y == 0:
