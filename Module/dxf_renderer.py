@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from random import randint
 
-from Config.configs import RENDER_ALL
+from Config.configs import CONFIG_COLLECTION
 
 from Data.shape import Point
 
@@ -199,7 +199,7 @@ class DXFRenderer(DXFLoader):
         return True
 
 def demo():
-    config = RENDER_ALL
+    config = CONFIG_COLLECTION['render_all']
 
     dxf_renderer = DXFRenderer(config)
     dxf_renderer.outputInfo()

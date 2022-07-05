@@ -4,7 +4,7 @@
 import os
 import ezdxf
 
-from Config.configs import RENDER_ALL
+from Config.configs import CONFIG_COLLECTION
 
 from Data.shape import Point, Line, Circle, Arc, BBox
 
@@ -311,7 +311,7 @@ class DXFLoader(object):
         return True
 
 def demo():
-    config = RENDER_ALL
+    config = CONFIG_COLLECTION['render_all']
 
     dxf_loader = DXFLoader(config)
     dxf_loader.outputInfo()
