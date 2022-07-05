@@ -14,7 +14,8 @@ from Method.cross_check import \
     isLineListCross, isPointInArcArea, \
     getPointCrossLineListNum
 from Method.similar_check import isHaveSameLine
-from Method.connect_check import isLineListConnectInAllLineList
+from Method.connect_check import \
+    isLineListConnectInAllLineList, isLineListUniform
 from Method.cluster import \
     clusterLineByCross, clusterLineBySimilar
 from Method.dists import getPointDist2, getLineDist2
@@ -411,14 +412,34 @@ class DXFLayoutDetector(DXFRenderer):
         layout_line_list = getShapeListWithLabel(self.line_list, "Layout")
         no_cross_window_dict = getShapeListDictWithLabel(self.line_list, "NoCrossWindow")
 
+        connect_window_idx = 0
+        disconnect_window_idx = 0
         for _, window_line_list in no_cross_window_dict.items():
             if isLineListConnectInAllLineList(window_line_list, layout_line_list,
                                               self.config['dist_error_max']):
                 for line in window_line_list:
-                    line.setLabel("ConnectWindow")
+                    line.setLabel("ConnectWindow", connect_window_idx)
+                connect_window_idx += 1
                 continue
             for line in window_line_list:
-                line.setLabel("DisconnectWindow")
+                line.setLabel("DisconnectWindow", disconnect_window_idx)
+            disconnect_window_idx += 1
+        return True
+
+    def updateUniformAndRandomDistWindowForConnectWindowLine(self):
+        connect_window_dict = getShapeListDictWithLabel(self.line_list, "ConnectWindow")
+
+        uniform_dist_window_idx = 0
+        random_dist_window_idx = 0
+        for _, connect_window_line_list in connect_window_dict.items():
+            if isLineListUniform(connect_window_line_list):
+                for line in connect_window_line_list:
+                    line.setLabel("UniformDistWindow")
+                uniform_dist_window_idx += 1
+                continue
+            for line in connect_window_line_list:
+                line.setLabel("RandomDistWindow")
+            random_dist_window_idx += 1
         return True
 
     def detectLayout(self):
@@ -473,6 +494,10 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateConnectWindowForNoCrossWindowLine failed!")
             return False
+        if not self.updateUniformAndRandomDistWindowForConnectWindowLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateUniformAndRandomDistWindowForConnectWindowLine failed!")
+            return False
 
         self.outputLabel([
             "Valid",
@@ -488,7 +513,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
         self.drawLineList(getShapeListWithLabel(self.line_list, "Door"), [0, 0, 255])
 
-        self.drawLineList(getShapeListWithLabel(self.line_list, "ConnectWindow"), [0, 255, 0])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "UniformDistWindow"), [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):

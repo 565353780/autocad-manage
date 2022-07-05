@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 from Data.point import Point
 
 from Method.dists import getLineDist
 from Method.cross_check import isPointCrossLineList
 from Method.similar_check import getMinConnectLineList
 
-def getConnectLinePair(line_list):
+def getMaxDistLineIdxPair(line_list):
     max_dist_line_idx_pair = [-1, -1]
     max_dist = -float('inf')
     for i in range(len(line_list) - 1):
@@ -16,7 +18,10 @@ def getConnectLinePair(line_list):
             if current_dist > max_dist:
                 max_dist_line_idx_pair = [i, j]
                 max_dist = current_dist
+    return max_dist_line_idx_pair
 
+def getConnectLinePair(line_list):
+    max_dist_line_idx_pair = getMaxDistLineIdxPair(line_list)
     connect_line_pair = getMinConnectLineList(
         line_list[max_dist_line_idx_pair[0]], line_list[max_dist_line_idx_pair[1]])
     return connect_line_pair
@@ -41,13 +46,63 @@ def isLineConnectInLineList(line, line_list, dist_error_max=0):
     return True
 
 def isLineListConnectInAllLineList(line_list, all_line_list, dist_error_max=0):
-
     connect_line_1, connect_line_2 = getConnectLinePair(line_list)
 
     if not isLineConnectInLineList(connect_line_1, all_line_list, dist_error_max):
         return False
 
     if not isLineConnectInLineList(connect_line_2, all_line_list, dist_error_max):
+        return False
+    return True
+
+def getSortedLineIdxList(line_list):
+    if len(line_list) < 3:
+        return [i for i in range(len(line_list))]
+
+    is_line_selected_list = [False for _ in line_list]
+
+    fix_line_idx, max_dist_line_idx = getMaxDistLineIdxPair(line_list)
+
+    fix_line = line_list[fix_line_idx]
+    is_line_selected_list[fix_line_idx] = True
+
+    sorted_line_idx_list = [max_dist_line_idx]
+    is_line_selected_list[max_dist_line_idx] = True
+
+    for _ in range(len(line_list) - 2):
+        unselected_line_list = [fix_line]
+        unselected_line_idx_map_dict = {}
+        idx_append_idx = 1
+        for i in range(len(line_list)):
+            if is_line_selected_list[i]:
+                continue
+            unselected_line_list.append(line_list[i])
+            unselected_line_idx_map_dict[str(idx_append_idx)] = i
+            idx_append_idx += 1
+
+        _, max_dist_line_idx = getMaxDistLineIdxPair(unselected_line_list)
+        line_list_idx = unselected_line_idx_map_dict[str(max_dist_line_idx)]
+        sorted_line_idx_list.append(line_list_idx)
+        is_line_selected_list[line_list_idx] = True
+
+    sorted_line_idx_list.append(fix_line_idx)
+    return sorted_line_idx_list
+
+def isLineListUniform(line_list):
+    if len(line_list) < 3:
+        return True
+
+    sorted_line_idx_list = getSortedLineIdxList(line_list)
+
+    line_dist_list = []
+    for i in range(len(line_list) - 1):
+        current_line_dist = getLineDist(line_list[sorted_line_idx_list[i]],
+                                        line_list[sorted_line_idx_list[i + 1]])
+        line_dist_list.append(current_line_dist)
+
+    var = np.var(line_dist_list)
+
+    if var > 10:
         return False
     return True
 
