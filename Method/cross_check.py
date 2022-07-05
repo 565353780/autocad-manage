@@ -49,6 +49,12 @@ def isPointCrossLine(point, line, dist_error_max=0):
         return True
     return False
 
+def isPointCrossLineList(point, line_list, dist_error_max=0):
+    for line in line_list:
+        if isPointCrossLine(point, line, dist_error_max):
+            return True
+    return False
+
 def getPointCrossLineListNum(point, line_list, dist_error_max=0):
     point_cross_line_list_num = 0
 
