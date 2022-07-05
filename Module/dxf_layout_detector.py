@@ -306,6 +306,7 @@ class DXFLayoutDetector(DXFRenderer):
         maybe_window_dict = getShapeListDictWithLabel(self.line_list, "MaybeWindow")
 
         cross_window_key_list = []
+        merge_key_list_list = []
         for key_1, line_list_1 in maybe_window_dict.items():
             if key_1 in cross_window_key_list:
                 continue
@@ -321,6 +322,27 @@ class DXFLayoutDetector(DXFRenderer):
                 if isLineListOnSameLines(line_list_1, line_list_2,
                                          self.config['angle_error_max'],
                                          self.config['dist_error_max']):
+                    key_merged = False
+                    for i in range(len(merge_key_list_list)):
+                        merge_key_list = merge_key_list_list[i]
+                        if key_1 not in merge_key_list and key_2 not in merge_key_list:
+                            continue
+
+                        if key_1 in merge_key_list:
+                            if key_2 in merge_key_list:
+                                key_merged = True
+                                break
+                            merge_key_list_list[i].append(key_2)
+                            key_merged = True
+                            break
+
+                        if key_2 in merge_key_list:
+                            merge_key_list_list[i].append(key_1)
+                            key_merged = True
+                            break
+
+                    if not key_merged:
+                        merge_key_list_list.append([key_1, key_2])
                     continue
                 cross_window_key_list.append(key_2)
                 find_cross_line_list = True
@@ -328,8 +350,32 @@ class DXFLayoutDetector(DXFRenderer):
             if find_cross_line_list:
                 cross_window_key_list.append(key_1)
 
+        merged_maybe_window_dict = {}
+        for key, item in maybe_window_dict.items():
+            key_need_to_merge = False
+            key_in_merge_list = None
+            for merge_key_list in merge_key_list_list:
+                if key in merge_key_list:
+                    key_need_to_merge = True
+                    key_in_merge_list = merge_key_list
+                    break
+
+            if not key_need_to_merge:
+                merged_maybe_window_dict[key] = item
+                continue
+
+            find_saved_key = False
+            for merge_key in key_in_merge_list:
+                if merge_key in merged_maybe_window_dict:
+                    merged_maybe_window_dict[merge_key] += item
+                    find_saved_key = True
+                    break
+
+            if not find_saved_key:
+                merged_maybe_window_dict[key] = item
+
         window_idx = 0
-        for key, line_list in maybe_window_dict.items():
+        for key, line_list in merged_maybe_window_dict.items():
             if key in cross_window_key_list:
                 continue
             for line in line_list:
