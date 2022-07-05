@@ -9,6 +9,8 @@ from Config.configs import CONFIG_COLLECTION
 
 from Data.shape import Point
 
+from Method.labels import getShapeListDictWithLabel
+
 from Module.dxf_loader import DXFLoader
 
 class DXFRenderer(DXFLoader):
@@ -178,6 +180,30 @@ class DXFRenderer(DXFLoader):
     def drawArcList(self, arc_list, color):
         for arc in arc_list:
             self.drawArc(arc, color)
+        return True
+
+    def drawLineLabel(self, label, color=None):
+        line_label_dict = getShapeListDictWithLabel(self.line_list, label)
+        for _, line_list in line_label_dict.items():
+            if color is None:
+                color = [randint(0, 255), randint(0, 255), randint(0, 255)]
+            self.drawLineList(line_list, color)
+        return True
+
+    def drawCircleLabel(self, label, color=None):
+        circle_label_dict = getShapeListDictWithLabel(self.circle_list, label)
+        for _, circle_list in circle_label_dict.items():
+            if color is None:
+                color = [randint(0, 255), randint(0, 255), randint(0, 255)]
+            self.drawCircleList(circle_list, color)
+        return True
+
+    def drawArcLabel(self, label, color=None):
+        arc_label_dict = getShapeListDictWithLabel(self.arc_list, label)
+        for _, arc_list in arc_label_dict.items():
+            if color is None:
+                color = [randint(0, 255), randint(0, 255), randint(0, 255)]
+            self.drawArcList(arc_list, color)
         return True
 
     def drawShape(self):
