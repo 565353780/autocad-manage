@@ -27,7 +27,7 @@ def getConnectLinePair(line_list):
     return connect_line_pair
 
 def isLineConnectInLineList(line, line_list, dist_error_max=0):
-    sample_num = 10
+    sample_num = 4
 
     start_x = line.start_point.x
     start_y = line.start_point.y
@@ -36,8 +36,8 @@ def isLineConnectInLineList(line, line_list, dist_error_max=0):
     end_y = line.end_point.y
     end_z = line.end_point.z
 
-    for i in range(1, sample_num):
-        current_step = 1.0 * i / sample_num
+    for i in range(1, sample_num + 1):
+        current_step = 1.0 * i / (sample_num + 1)
         current_point = Point(start_x + current_step * (end_x - start_x),
                               start_y + current_step * (end_y - start_y),
                               start_z + current_step * (end_z - start_z))
@@ -88,7 +88,7 @@ def getSortedLineIdxList(line_list):
     sorted_line_idx_list.append(fix_line_idx)
     return sorted_line_idx_list
 
-def isLineListUniform(line_list):
+def isLineListUniform(line_list, var_min=1000):
     if len(line_list) < 3:
         return True
 
@@ -102,7 +102,7 @@ def isLineListUniform(line_list):
 
     var = np.var(line_dist_list)
 
-    if var > 10:
+    if var > var_min:
         return False
     return True
 
