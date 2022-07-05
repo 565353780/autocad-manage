@@ -25,10 +25,6 @@ class DXFLayoutDetector(DXFRenderer):
     def __init__(self, config):
         super(DXFLayoutDetector, self).__init__(config)
 
-        self.single_connect_removed_line_list = []
-        self.single_connect_point_list = []
-        self.single_connect_line_list = []
-
         self.door_arc_list = []
         self.door_line_list = []
 
@@ -101,40 +97,40 @@ class DXFLayoutDetector(DXFRenderer):
         outer_line_list = self.getOuterLineListByLineNum()
 
         for outer_line in outer_line_list:
-            outer_line.setLabel("OuterLine")
+            outer_line.setLabel("Outer")
         return True
 
     def updateSingleConnectLineRemovedLineList(self):
-        self.single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "OuterLine")
+        single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "Outer")
         last_line_list = []
 
         find_single_connect_line = True
         while find_single_connect_line:
             find_single_connect_line = False
 
-            last_line_list = self.single_connect_removed_line_list
-            self.single_connect_removed_line_list = []
+            last_line_list = single_connect_removed_line_list
+            single_connect_removed_line_list = []
 
             for line in last_line_list:
                 start_point_cross_line_num = getPointCrossLineListNum(
                     line.start_point, last_line_list, self.config['max_dist_error'] * 1000)
                 if start_point_cross_line_num < 2:
                     find_single_connect_line = True
-                    self.single_connect_point_list.append(line.start_point)
-                    self.single_connect_line_list.append(line)
+                    line.start_point.setLabel("SingleConnect")
+                    line.setLabel("SingleConnect")
                     continue
 
                 end_point_cross_line_num = getPointCrossLineListNum(
                     line.end_point, last_line_list, self.config['max_dist_error'] * 1000)
                 if end_point_cross_line_num < 2:
                     find_single_connect_line = True
-                    self.single_connect_point_list.append(line.end_point)
-                    self.single_connect_line_list.append(line)
+                    line.end_point.setLabel("SingleConnect")
+                    line.setLabel("SingleConnect")
                     continue
 
-                self.single_connect_removed_line_list.append(line)
+                single_connect_removed_line_list.append(line)
 
-        for line in self.single_connect_removed_line_list:
+        for line in single_connect_removed_line_list:
             line.setLabel("Layout")
         return True
 
@@ -172,7 +168,8 @@ class DXFLayoutDetector(DXFRenderer):
             end_line = Line(center, end_point)
             arc_line_pair_list.append([start_line, end_line])
 
-        line_list = self.single_connect_removed_line_list
+        line_list = getShapeListWithLabel(self.line_list, "Layout")
+        #  line_list = getShapeListWithLabel(self.line_list, "Outer", None, ["SingleConnect"])
 
         valid_door_arc_list = []
         door_line_pair_pair_list = []
@@ -316,13 +313,13 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
-        self.drawLineList(self.single_connect_removed_line_list, [255, 255, 255])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "Layout"), [255, 255, 255])
 
+        #  self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
         self.drawArcList(self.door_arc_list, [0, 0, 255])
         self.drawLineList(self.door_line_list, [0, 0, 255])
 
-        self.drawPointList(self.single_connect_point_list, [0, 0, 255])
-        self.drawLineList(self.single_connect_line_list, [0, 255, 0])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "SingleConnect"), [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):

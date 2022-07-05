@@ -56,3 +56,9 @@ class Label(object):
                 return False
         return True
 
+    def isMatchAnyLabel(self, label_list):
+        for label in label_list:
+            if self.isMatchLabel(label):
+                return True
+        return False
+
