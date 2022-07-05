@@ -9,6 +9,8 @@ BASE_CONFIG = {
     'angle_error_max': 5,
     'k_0_max': 1e-6,
     'k_inf_min': 1e6,
+    'window_line_num_min': 3,
+    'window_line_num_max': 4,
     'image_width': 1600 * 1.2,
     'image_height': 900 * 1.2,
     'free_width': 50,
