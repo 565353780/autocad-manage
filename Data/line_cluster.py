@@ -26,5 +26,7 @@ class LineCluster(object):
             return True
 
         self.line_list += line_list
+        bbox_list = [line.bbox for line in line_list]
+        self.bbox.addBBoxListPosition(bbox_list)
         return True
 

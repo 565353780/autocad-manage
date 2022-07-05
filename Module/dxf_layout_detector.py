@@ -8,6 +8,7 @@ from Config.configs import \
     LAYOUT_6, LAYOUT_9, LAYOUT_10
 
 from Data.line import Line
+from Data.line_cluster import LineCluster
 
 from Method.cross_check import \
     isLineHorizontal, isLineVertical, \
@@ -15,6 +16,8 @@ from Method.cross_check import \
     getPointCrossLineListNum
 from Method.cluster import clusterLineByIdx
 from Method.dists import getPointDist2, getLineDist2
+from Method.labels import \
+    getShapeListWithLabel, getShapeListDictWithLabel
 
 from Module.dxf_renderer import DXFRenderer
 
@@ -22,8 +25,7 @@ class DXFLayoutDetector(DXFRenderer):
     def __init__(self, config):
         super(DXFLayoutDetector, self).__init__(config)
 
-        self.line_cluster_list = []
-        self.outer_line_cluster = None
+        self.outer_line_list = []
 
         self.single_connect_removed_line_list = []
         self.single_connect_point_list = []
@@ -63,42 +65,42 @@ class DXFLayoutDetector(DXFRenderer):
 
     def clusterLines(self):
         cluster_label_list = ["Horizontal", "Vertical"]
-        self.line_cluster_list = clusterLineByIdx(self.line_list,
-                                                  cluster_label_list,
-                                                  self.config['max_dist_error'])
+        clusterLineByIdx(self.line_list, cluster_label_list, self.config['max_dist_error'])
         return True
 
-    def updateOuterLineClusterByArea(self):
-        self.outer_line_cluster = None
+    def updateOuterLineListByArea(self):
+        line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
 
         max_bbox_area = 0
-        for line_cluster in self.line_cluster_list:
-            current_bbox_area = line_cluster.bbox.getArea()
+        for key in line_list_dict.keys():
+            line_list = line_list_dict[key]
+            current_bbox_area = LineCluster(line_list).bbox.getArea()
             if current_bbox_area <= max_bbox_area:
                 continue
             max_bbox_area = current_bbox_area
-            self.outer_line_cluster = line_cluster
+            self.outer_line_list = line_list
         return True
 
-    def updateOuterLineClusterByLineNum(self):
-        self.outer_line_cluster = None
+    def updateOuterLineListByLineNum(self):
+        line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
 
         max_line_num = 0
-        for line_cluster in self.line_cluster_list:
-            current_line_num = len(line_cluster.line_list)
+        for key in line_list_dict.keys():
+            line_list = line_list_dict[key]
+            current_line_num = len(line_list)
             if current_line_num <= max_line_num:
                 continue
             max_line_num = current_line_num
-            self.outer_line_cluster = line_cluster
+            self.outer_line_list = line_list
         return True
 
     def updateOuterLineCluster(self):
-        #  self.updateOuterLineClusterByArea()
-        self.updateOuterLineClusterByLineNum()
+        #  self.updateOuterLineListByArea()
+        self.updateOuterLineListByLineNum()
         return True
 
     def updateSingleConnectLineRemovedLineList(self):
-        self.single_connect_removed_line_list = self.outer_line_cluster.line_list
+        self.single_connect_removed_line_list = self.outer_line_list
         last_line_list = []
 
         find_single_connect_line = True
@@ -304,8 +306,6 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateWindowLineList failed!")
             return False
-
-        self.outputLabel()
         return True
 
     def drawShape(self):

@@ -76,6 +76,14 @@ class BBox(object):
             return False
         return True
 
+    def addBBoxListPosition(self, bbox_list):
+        for bbox in bbox_list:
+            if not self.addBBoxPosition(bbox):
+                print("[ERROR][BBox::addBBoxListPosition]")
+                print("\t addBBoxPosition failed!")
+                return False
+        return True
+
     def updateBBox(self,
                    x_min=None, y_min=None, z_min=None,
                    x_max=None, y_max=None, z_max=None):
