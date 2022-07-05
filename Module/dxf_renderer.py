@@ -185,25 +185,28 @@ class DXFRenderer(DXFLoader):
     def drawLineLabel(self, label, color=None):
         line_label_dict = getShapeListDictWithLabel(self.line_list, label)
         for _, line_list in line_label_dict.items():
-            if color is None:
-                color = [randint(0, 255), randint(0, 255), randint(0, 255)]
-            self.drawLineList(line_list, color)
+            current_color = [randint(0, 255), randint(0, 255), randint(0, 255)]
+            if color is not None:
+                current_color = color
+            self.drawLineList(line_list, current_color)
         return True
 
     def drawCircleLabel(self, label, color=None):
         circle_label_dict = getShapeListDictWithLabel(self.circle_list, label)
         for _, circle_list in circle_label_dict.items():
-            if color is None:
-                color = [randint(0, 255), randint(0, 255), randint(0, 255)]
-            self.drawCircleList(circle_list, color)
+            current_color = [randint(0, 255), randint(0, 255), randint(0, 255)]
+            if color is not None:
+                current_color = color
+            self.drawCircleList(circle_list, current_color)
         return True
 
     def drawArcLabel(self, label, color=None):
         arc_label_dict = getShapeListDictWithLabel(self.arc_list, label)
         for _, arc_list in arc_label_dict.items():
-            if color is None:
-                color = [randint(0, 255), randint(0, 255), randint(0, 255)]
-            self.drawArcList(arc_list, color)
+            current_color = [randint(0, 255), randint(0, 255), randint(0, 255)]
+            if color is not None:
+                current_color = color
+            self.drawArcList(arc_list, current_color)
         return True
 
     def drawShape(self):
