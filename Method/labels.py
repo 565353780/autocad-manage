@@ -11,15 +11,25 @@ def getShapeListWithLabel(shape_list, label, label_value=None, unused_label_list
         shape_list_with_label.append(shape)
     return shape_list_with_label
 
-def getShapeListWithLabelList(shape_list, label_list, label_value_list=None, unused_label_list=[]):
-    shape_list_with_label_list = []
+def getShapeListWithAllLabelList(shape_list, label_list, label_value_list=None, unused_label_list=[]):
+    shape_list_with_all_label_list = []
     for shape in shape_list:
         if not shape.isMatchLabelList(label_list, label_value_list):
             continue
         if shape.isMatchAnyLabel(unused_label_list):
             continue
-        shape_list_with_label_list.append(shape)
-    return shape_list_with_label_list
+        shape_list_with_all_label_list.append(shape)
+    return shape_list_with_all_label_list
+
+def getShapeListWithAnyLabelList(shape_list, label_list, unused_label_list=[]):
+    shape_list_with_any_label_list = []
+    for shape in shape_list:
+        if not shape.isMatchAnyLabel(label_list):
+            continue
+        if shape.isMatchAnyLabel(unused_label_list):
+            continue
+        shape_list_with_any_label_list.append(shape)
+    return shape_list_with_any_label_list
 
 def getShapeListDictWithLabel(shape_list, label, unused_label_list=[]):
     shape_list_dict_with_label = {}

@@ -4,7 +4,7 @@
 from Data.line import Line
 
 from Method.dists import getPointDist2, getLineDist
-from Method.cross_check import isLineParallel
+from Method.cross_check import isBBoxCross, isLineParallel
 
 def getMinConnectLineList(line_1, line_2):
     min_connect_line_list = []
@@ -24,6 +24,23 @@ def getMinConnectLineList(line_1, line_2):
     min_connect_line_list.append(Line(line_1.start_point, line_2.end_point))
     min_connect_line_list.append(Line(line_1.end_point, line_2.start_point))
     return min_connect_line_list
+
+def isSameLine(line_1, line_2, dist_error_max=0):
+    if not isBBoxCross(line_1.bbox, line_2.bbox, dist_error_max):
+        return False
+
+    min_connect_line_1, min_connect_line_2 = getMinConnectLineList(line_1, line_2)
+    if min_connect_line_1.getLength() > dist_error_max:
+        return False
+    if min_connect_line_2.getLength() > dist_error_max:
+        return False
+    return True
+
+def isHaveSameLine(new_line, line_list, dist_error_max=0):
+    for line in line_list:
+        if isSameLine(new_line, line, dist_error_max):
+            return True
+    return False
 
 def isLineConnectVertical(line_1, line_2, angle_error_max=0, dist_error_max=0):
     vertical_error_max = 10
