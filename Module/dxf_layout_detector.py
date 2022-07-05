@@ -285,11 +285,13 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateWindowForSimilarClusterLine(self):
+        window_line_num_min = 3
+
         similar_cluster_dict = getShapeListDictWithLabel(self.line_list, "SimilarCluster")
 
         window_idx = 0
         for _, item in similar_cluster_dict.items():
-            if len(item) < 3:
+            if len(item) < window_line_num_min:
                 continue
             for line in item:
                 line.setLabel("MaybeWindow", window_idx)
