@@ -25,8 +25,6 @@ class DXFLayoutDetector(DXFRenderer):
     def __init__(self, config):
         super(DXFLayoutDetector, self).__init__(config)
 
-        self.door_line_list = []
-
         self.window_line_list = []
 
         self.detectLayout()
@@ -149,7 +147,7 @@ class DXFLayoutDetector(DXFRenderer):
         for arc in door_arc_list:
             if arc.radius < radius_min:
                 continue
-            arc.setLabel("Door")
+            arc.setLabel("MayBeDoor")
         return True
 
     def updateDoorLineList(self):
@@ -159,7 +157,7 @@ class DXFLayoutDetector(DXFRenderer):
 
         arc_line_pair_list = []
 
-        door_arc_list = getShapeListWithLabel(self.arc_list, "Door")
+        door_arc_list = getShapeListWithLabel(self.arc_list, "MayBeDoor")
         for arc in door_arc_list:
             center = arc.center
             start_point = arc.flatten_point_list[0]
@@ -266,6 +264,9 @@ class DXFLayoutDetector(DXFRenderer):
                 for door_line in door_line_pair:
                     door_line.setLabel("Door", door_idx)
             door_idx += 1
+
+        for arc in self.arc_list:
+            arc.removeLabel("MayBeDoor", True)
         return True
 
     def updateWindowLineList(self):
