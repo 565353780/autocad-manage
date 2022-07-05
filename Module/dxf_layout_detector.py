@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import cv2
-import numpy as np
-from random import randint
+from cv2 import waitKey
 
 from Config.configs import \
     LAYOUT_TEST1, LAYOUT_3, LAYOUT_4, LAYOUT_5, \
@@ -300,22 +298,6 @@ class DXFLayoutDetector(DXFRenderer):
             return False
         return True
 
-    def drawLineLabel(self, label, color=None):
-        value_color_dict = {}
-        for line in self.line_list:
-            value = line.getLabel(label)
-            if value is None:
-                continue
-            if color is None:
-                if value not in value_color_dict.keys():
-                    random_color = [randint(0, 255),
-                                    randint(0, 255),
-                                    randint(0, 255)]
-                    value_color_dict[value] = random_color
-                color = value_color_dict[value]
-            self.drawLine(line, color)
-        return True
-
     def drawShape(self):
         self.drawLineList(self.single_connect_removed_line_list, [255, 255, 255])
 
@@ -338,7 +320,7 @@ def demo_debug():
     renderer.render()
 
     demo_with_edit_config(config, [['window_name', 'detect']])
-    cv2.waitKey(0)
+    waitKey(0)
     return True
 
 def demo():
@@ -347,7 +329,7 @@ def demo():
     dxf_layout_detector = DXFLayoutDetector(config)
     dxf_layout_detector.outputInfo()
     dxf_layout_detector.render()
-    cv2.waitKey(0)
+    waitKey(0)
     return True
 
 if __name__ == "__main__":

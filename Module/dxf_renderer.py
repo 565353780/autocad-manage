@@ -3,6 +3,7 @@
 
 import cv2
 import numpy as np
+from random import randint
 
 from Config.configs import RENDER_ALL
 
@@ -150,6 +151,22 @@ class DXFRenderer(DXFLoader):
 
     def drawLineList(self, line_list, color):
         for line in line_list:
+            self.drawLine(line, color)
+        return True
+
+    def drawLineLabel(self, label, color=None):
+        value_color_dict = {}
+        for line in self.line_list:
+            value = line.getLabel(label)
+            if value is None:
+                continue
+            if color is None:
+                if value not in value_color_dict.keys():
+                    random_color = [randint(0, 255),
+                                    randint(0, 255),
+                                    randint(0, 255)]
+                    value_color_dict[value] = random_color
+                color = value_color_dict[value]
             self.drawLine(line, color)
         return True
 
