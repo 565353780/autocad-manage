@@ -100,47 +100,73 @@ class DXFRenderer(DXFLoader):
             1.0 * (image_position.z - self.free_width) / self.scale - self.trans_point.z)
         return world_potision
 
-    def drawLine(self):
-        for line in self.line_list:
-            start_point_in_image = self.getImagePosition(line.start_point)
-            end_point_in_image = self.getImagePosition(line.end_point)
+    def drawPoint(self, point , color):
+        point_in_image = self.getImagePosition(point)
+        cv2.circle(self.image,
+                   (point_in_image.x, point_in_image.y),
+                   1,
+                   np.array(color, dtype=np.float) / 255.0,
+                   1, 8, 0)
+        return True
+
+    def drawLine(self, line, color):
+        start_point_in_image = self.getImagePosition(line.start_point)
+        end_point_in_image = self.getImagePosition(line.end_point)
+        cv2.line(self.image,
+                 (start_point_in_image.x, start_point_in_image.y),
+                 (end_point_in_image.x, end_point_in_image.y),
+                 np.array(color, dtype=np.float) / 255.0,
+                 1, 4)
+        return True
+
+    def drawCircle(self, circle, color):
+        center_in_image = self.getImagePosition(circle.center)
+        radius_in_image = int(circle.radius * self.scale)
+        cv2.circle(self.image,
+                   (center_in_image.x, center_in_image.y),
+                   radius_in_image,
+                   np.array(color, dtype=np.float) / 255.0,
+                   1, 8, 0)
+        return True
+
+    def drawArc(self, arc, color):
+        point_list = arc.flatten_point_list
+        for i in range(len(point_list) - 1):
+            current_point = point_list[i]
+            next_point = point_list[i + 1]
+            current_point_in_image = self.getImagePosition(current_point)
+            next_point_in_image = self.getImagePosition(next_point)
             cv2.line(self.image,
-                     (start_point_in_image.x, start_point_in_image.y),
-                     (end_point_in_image.x, end_point_in_image.y),
-                     np.array(self.line_color, dtype=np.float) / 255.0,
+                     (current_point_in_image.x, current_point_in_image.y),
+                     (next_point_in_image.x, next_point_in_image.y),
+                     np.array(color, dtype=np.float) / 255.0,
                      1, 4)
         return True
 
-    def drawCircle(self):
-        for circle in self.circle_list:
-            center_in_image = self.getImagePosition(circle.center)
-            radius_in_image = int(circle.radius * self.scale)
-            cv2.circle(self.image,
-                       (center_in_image.x, center_in_image.y),
-                       radius_in_image,
-                       np.array(self.circle_color, dtype=np.float) / 255.0,
-                       1, 8, 0)
+    def drawPointList(self, point_list, color):
+        for point in point_list:
+            self.drawPoint(point , color)
         return True
 
-    def drawArc(self):
-        for arc in self.arc_list:
-            point_list = arc.flatten_point_list
-            for i in range(len(point_list) - 1):
-                current_point = point_list[i]
-                next_point = point_list[i + 1]
-                current_point_in_image = self.getImagePosition(current_point)
-                next_point_in_image = self.getImagePosition(next_point)
-                cv2.line(self.image,
-                         (current_point_in_image.x, current_point_in_image.y),
-                         (next_point_in_image.x, next_point_in_image.y),
-                         np.array(self.arc_color, dtype=np.float) / 255.0,
-                         1, 4)
+    def drawLineList(self, line_list, color):
+        for line in line_list:
+            self.drawLine(line, color)
+        return True
+
+    def drawCircleList(self, circle_list, color):
+        for circle in circle_list:
+            self.drawCircle(circle, color)
+        return True
+
+    def drawArcList(self, arc_list, color):
+        for arc in arc_list:
+            self.drawArc(arc, color)
         return True
 
     def drawShape(self):
-        self.drawLine()
-        self.drawCircle()
-        self.drawArc()
+        self.drawLineList(self.line_list, self.line_color)
+        self.drawCircleList(self.circle_list, self.circle_color)
+        self.drawArcList(self.arc_list, self.arc_color)
         return True
 
     def render(self):

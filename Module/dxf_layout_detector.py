@@ -10,12 +10,11 @@ from Config.configs import \
     LAYOUT_6, LAYOUT_9, LAYOUT_10
 
 from Data.line import Line
-from Data.line_cluster import LineCluster
 
 from Method.cross_check import \
     isLineHorizontal, isLineVertical, \
     isLineParallel, isPointInArcArea, \
-    getLineCrossLineListNum
+    getPointCrossLineListNum
 from Method.cluster import clusterLineByIdx
 from Method.dists import getPointDist2, getLineDist2
 
@@ -27,9 +26,12 @@ class DXFLayoutDetector(DXFRenderer):
 
         self.line_cluster_list = []
         self.outer_line_cluster = None
-        self.single_connect_removed_line_cluster = None
+        self.single_connect_removed_line_list = []
         self.door_arc_list = []
         self.door_line_list = []
+
+        self.single_connect_point_list = []
+        self.single_connect_line_list = []
 
         self.detectLayout()
         return
@@ -95,18 +97,38 @@ class DXFLayoutDetector(DXFRenderer):
 
         return True
 
-    def updateSingleConnectLineRemovedLineCluster(self):
-        self.single_connect_removed_line_cluster = LineCluster()
+    def updateSingleConnectLineRemovedLineList(self):
+        self.single_connect_removed_line_list = \
+            self.outer_line_cluster.line_list
+        last_line_list = []
 
-        line_list = self.outer_line_cluster.line_list
+        find_single_connect_line = True
+        while find_single_connect_line:
+            find_single_connect_line = False
 
-        for line in line_list:
-            cross_num = getLineCrossLineListNum(line, line_list, self.config['max_dist_error'])
-            if cross_num < 2:
-                continue
-            self.single_connect_removed_line_cluster.addLine(line)
+            last_line_list = self.single_connect_removed_line_list
+            self.single_connect_removed_line_list = []
 
-        for line in self.single_connect_removed_line_cluster.line_list:
+            for line in last_line_list:
+                start_point_cross_line_num = getPointCrossLineListNum(
+                    line.start_point, last_line_list, self.config['max_dist_error'])
+                if start_point_cross_line_num < 2:
+                    find_single_connect_line = True
+                    self.single_connect_point_list.append(line.start_point)
+                    self.single_connect_line_list.append(line)
+                    continue
+
+                end_point_cross_line_num = getPointCrossLineListNum(
+                    line.end_point, last_line_list, self.config['max_dist_error'])
+                if end_point_cross_line_num < 2:
+                    find_single_connect_line = True
+                    self.single_connect_point_list.append(line.end_point)
+                    self.single_connect_line_list.append(line)
+                    continue
+
+                self.single_connect_removed_line_list.append(line)
+
+        for line in self.single_connect_removed_line_list:
             line.setLabel("Layout")
         return True
 
@@ -144,7 +166,7 @@ class DXFLayoutDetector(DXFRenderer):
             end_line = Line(center, end_point)
             arc_line_pair_list.append([start_line, end_line])
 
-        line_list = self.single_connect_removed_line_cluster.line_list
+        line_list = self.single_connect_removed_line_list
 
         valid_door_arc_list = []
         door_line_pair_pair_list = []
@@ -264,9 +286,9 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateOuterLineCluster failed!")
             return False
-        if not self.updateSingleConnectLineRemovedLineCluster():
+        if not self.updateSingleConnectLineRemovedLineList():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateSingleConnectLineRemovedLineCluster failed!")
+            print("\t updateSingleConnectLineRemovedLineList failed!")
             return False
         if not self.updateDoorArcList():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -278,7 +300,7 @@ class DXFLayoutDetector(DXFRenderer):
             return False
         return True
 
-    def drawLabel(self, label, color=None):
+    def drawLineLabel(self, label, color=None):
         value_color_dict = {}
         for line in self.line_list:
             value = line.getLabel(label)
@@ -291,76 +313,14 @@ class DXFLayoutDetector(DXFRenderer):
                                     randint(0, 255)]
                     value_color_dict[value] = random_color
                 color = value_color_dict[value]
-            start_point_in_image = self.getImagePosition(line.start_point)
-            end_point_in_image = self.getImagePosition(line.end_point)
-            cv2.line(self.image,
-                     (start_point_in_image.x, start_point_in_image.y),
-                     (end_point_in_image.x, end_point_in_image.y),
-                     np.array(color, dtype=np.float) / 255.0,
-                     1, 4)
-        return True
-
-    def drawLineCluster(self):
-        draw_white = True
-        for line_cluster in self.line_cluster_list:
-            random_color = [randint(0, 255),
-                            randint(0, 255),
-                            randint(0, 255)]
-            if draw_white:
-                random_color = [255, 255, 255]
-                draw_white = False
-            for line in line_cluster.line_list:
-                start_point_in_image = self.getImagePosition(line.start_point)
-                end_point_in_image = self.getImagePosition(line.end_point)
-                cv2.line(self.image,
-                         (start_point_in_image.x, start_point_in_image.y),
-                         (end_point_in_image.x, end_point_in_image.y),
-                         np.array(random_color, dtype=np.float) / 255.0,
-                         1, 4)
-        return True
-
-    def drawOuterLineCluster(self, color):
-        for line in self.outer_line_cluster.line_list:
-            start_point_in_image = self.getImagePosition(line.start_point)
-            end_point_in_image = self.getImagePosition(line.end_point)
-            cv2.line(self.image,
-                     (start_point_in_image.x, start_point_in_image.y),
-                     (end_point_in_image.x, end_point_in_image.y),
-                     np.array(color, dtype=np.float) / 255.0,
-                     1, 4)
-        return True
-
-    def drawDoorArcList(self, color):
-        for arc in self.door_arc_list:
-            point_list = arc.flatten_point_list
-            for i in range(len(point_list) - 1):
-                current_point = point_list[i]
-                next_point = point_list[i + 1]
-                current_point_in_image = self.getImagePosition(current_point)
-                next_point_in_image = self.getImagePosition(next_point)
-                cv2.line(self.image,
-                         (current_point_in_image.x, current_point_in_image.y),
-                         (next_point_in_image.x, next_point_in_image.y),
-                         np.array(color, dtype=np.float) / 255.0,
-                         1, 4)
-        return True
-
-    def drawDoorLineList(self, color):
-        for line in self.door_line_list:
-            start_point_in_image = self.getImagePosition(line.start_point)
-            end_point_in_image = self.getImagePosition(line.end_point)
-            cv2.line(self.image,
-                     (start_point_in_image.x, start_point_in_image.y),
-                     (end_point_in_image.x, end_point_in_image.y),
-                     np.array(color, dtype=np.float) / 255.0,
-                     1, 4)
+            self.drawLine(line, color)
         return True
 
     def drawShape(self):
-        self.drawOuterLineCluster([255, 255, 255])
+        self.drawLineList(self.single_connect_removed_line_list, [255, 255, 255])
 
-        self.drawDoorArcList([0, 0, 255])
-        self.drawDoorLineList([0, 0, 255])
+        self.drawArcList(self.door_arc_list, [0, 0, 255])
+        self.drawLineList(self.door_line_list, [0, 0, 255])
         #  self.drawDoorRemovedLineCluster()
         return True
 
@@ -372,7 +332,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = LAYOUT_TEST1
+    config = LAYOUT_5
 
     renderer = DXFRenderer(config)
     renderer.render()
