@@ -25,7 +25,6 @@ class DXFLayoutDetector(DXFRenderer):
     def __init__(self, config):
         super(DXFLayoutDetector, self).__init__(config)
 
-        self.door_arc_list = []
         self.door_line_list = []
 
         self.window_line_list = []
@@ -150,7 +149,7 @@ class DXFLayoutDetector(DXFRenderer):
         for arc in door_arc_list:
             if arc.radius < radius_min:
                 continue
-            self.door_arc_list.append(arc)
+            arc.setLabel("Door")
         return True
 
     def updateDoorLineList(self):
@@ -160,7 +159,8 @@ class DXFLayoutDetector(DXFRenderer):
 
         arc_line_pair_list = []
 
-        for arc in self.door_arc_list:
+        door_arc_list = getShapeListWithLabel(self.arc_list, "Door")
+        for arc in door_arc_list:
             center = arc.center
             start_point = arc.flatten_point_list[0]
             end_point = arc.flatten_point_list[-1]
@@ -169,11 +169,10 @@ class DXFLayoutDetector(DXFRenderer):
             arc_line_pair_list.append([start_line, end_line])
 
         line_list = getShapeListWithLabel(self.line_list, "Layout")
-        #  line_list = getShapeListWithLabel(self.line_list, "Outer", None, ["SingleConnect"])
 
         valid_door_arc_list = []
         door_line_pair_pair_list = []
-        for door_arc, arc_line_pair in zip(self.door_arc_list, arc_line_pair_list):
+        for door_arc, arc_line_pair in zip(door_arc_list, arc_line_pair_list):
             door_line_pair_pair = []
             for arc_line in arc_line_pair:
                 first_line_idx = -1
@@ -222,7 +221,7 @@ class DXFLayoutDetector(DXFRenderer):
             valid_door_arc_list.append(door_arc)
             door_line_pair_pair_list.append(door_line_pair_pair)
 
-        self.door_arc_list = valid_door_arc_list
+        door_arc_list = valid_door_arc_list
 
         extra_door_line_list = []
         for valid_door_arc, door_line_pair_pair in \
@@ -261,7 +260,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.door_line_list += extra_door_line_list
 
         door_idx = 0
-        for arc, door_line_pair_pair in zip(self.door_arc_list, door_line_pair_pair_list):
+        for arc, door_line_pair_pair in zip(door_arc_list, door_line_pair_pair_list):
             arc.setLabel("Door", door_idx)
             for door_line_pair in door_line_pair_pair:
                 for door_line in door_line_pair:
@@ -315,9 +314,8 @@ class DXFLayoutDetector(DXFRenderer):
     def drawShape(self):
         self.drawLineList(getShapeListWithLabel(self.line_list, "Layout"), [255, 255, 255])
 
-        #  self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
-        self.drawArcList(self.door_arc_list, [0, 0, 255])
-        self.drawLineList(self.door_line_list, [0, 0, 255])
+        self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "Door"), [0, 0, 255])
 
         self.drawLineList(getShapeListWithLabel(self.line_list, "SingleConnect"), [0, 255, 0])
         return True
@@ -330,7 +328,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = LAYOUT_5
+    config = LAYOUT_TEST1
 
     renderer = DXFRenderer(config)
     renderer.render()
