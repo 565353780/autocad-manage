@@ -60,7 +60,7 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def getMaybeLayoutLineListFromClusterByArea(self):
-        outer_line_list = []
+        layout_line_list = []
 
         line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
 
@@ -71,11 +71,11 @@ class DXFLayoutDetector(DXFRenderer):
             if current_bbox_area <= max_bbox_area:
                 continue
             max_bbox_area = current_bbox_area
-            outer_line_list = line_list
-        return outer_line_list
+            layout_line_list = line_list
+        return layout_line_list
 
     def getMaybeLayoutLineListFromClusterLineNum(self):
-        outer_line_list = []
+        layout_line_list = []
 
         line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
 
@@ -86,18 +86,18 @@ class DXFLayoutDetector(DXFRenderer):
             if current_line_num <= max_line_num:
                 continue
             max_line_num = current_line_num
-            outer_line_list = line_list
-        return outer_line_list
+            layout_line_list = line_list
+        return layout_line_list
 
     def updateMaybeLayoutForClusterLine(self):
-        #  outer_line_list = self.getMaybeLayoutLineListFromClusterByArea()
-        outer_line_list = self.getMaybeLayoutLineListFromClusterLineNum()
+        #  layout_line_list = self.getMaybeLayoutLineListFromClusterByArea()
+        layout_line_list = self.getMaybeLayoutLineListFromClusterLineNum()
 
-        for outer_line in outer_line_list:
-            outer_line.setLabel("MaybeLayout")
+        for layout_line in layout_line_list:
+            layout_line.setLabel("MaybeLayout")
         return True
 
-    def updateLayoutAndSingleConnectForOuterLine(self):
+    def updateLayoutAndSingleConnectForMaybeLayoutLine(self):
         single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "MaybeLayout")
         last_line_list = []
 
@@ -295,9 +295,9 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateMaybeLayoutForClusterLine failed!")
             return False
-        if not self.updateLayoutAndSingleConnectForOuterLine():
+        if not self.updateLayoutAndSingleConnectForMaybeLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateLayoutAndSingleConnectForOuterLine failed!")
+            print("\t updateLayoutAndSingleConnectForMaybeLayoutLine failed!")
             return False
         if not self.updateMaybeDoorForArc():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
