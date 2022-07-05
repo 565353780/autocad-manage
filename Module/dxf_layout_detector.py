@@ -13,11 +13,13 @@ from Method.cross_check import \
     isLineParallel, isLineListOnSameLines, \
     isLineListCross, isPointInArcArea, \
     getPointCrossLineListNum
+from Method.similar_check import isHaveSameLine
 from Method.cluster import \
     clusterLineByCross, clusterLineBySimilar
 from Method.dists import getPointDist2, getLineDist2
 from Method.labels import \
-    getShapeListWithLabel, getShapeListDictWithLabel
+    getShapeListWithLabel, getShapeListWithAnyLabelList, \
+    getShapeListDictWithLabel
 
 from Module.dxf_renderer import DXFRenderer
 
@@ -52,12 +54,29 @@ class DXFLayoutDetector(DXFRenderer):
                 line.setLabel("Vertical")
         return True
 
-    def updateCrossClusterIdxForHVLine(self):
-        cluster_label_list = ["Horizontal", "Vertical"]
+    def updateUnitAndRepeatForHVLine(self):
+        hv_line_list = getShapeListWithAnyLabelList(self.line_list, ["Horizontal", "Vertical"])
+        unit_line_list = []
+        repeat_line_list = []
+        for line in hv_line_list:
+            if isHaveSameLine(line, unit_line_list, self.config['dist_error_max'] * 10):
+                repeat_line_list.append(line)
+            else:
+                unit_line_list.append(line)
+
+        for line in unit_line_list:
+            line.setLabel("Unit")
+
+        for line in repeat_line_list:
+            line.setLabel("Repeat")
+        return True
+
+    def updateCrossClusterIdxForUnitLine(self):
+        cluster_label_list = ["Unit"]
         if not clusterLineByCross(self.line_list,
                                   cluster_label_list,
                                   self.config['dist_error_max']):
-            print("[ERROR][DXFLayoutDetector::updateCrossClusterIdxForHVLine]")
+            print("[ERROR][DXFLayoutDetector::updateCrossClusterIdxForUnitLine]")
             print("\t clusterLineByCross failed!")
         return True
 
@@ -286,13 +305,14 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateMaybeWindowForSimilarClusterLine(self):
-        window_line_num_min = 3
+        window_line_num_min = self.config['window_line_num_min']
+        window_line_num_max = self.config['window_line_num_max']
 
         similar_cluster_dict = getShapeListDictWithLabel(self.line_list, "SimilarCluster")
 
         window_idx = 0
         for _, line_list in similar_cluster_dict.items():
-            if len(line_list) < window_line_num_min:
+            if len(line_list) < window_line_num_min or len(line_list) > window_line_num_max:
                 continue
             for line in line_list:
                 line.setLabel("MaybeWindow", window_idx)
@@ -380,6 +400,7 @@ class DXFLayoutDetector(DXFRenderer):
                 continue
             for line in line_list:
                 line.setLabel("NoCrossWindow", window_idx)
+                line.outputInfo()
             window_idx += 1
 
         for line in self.line_list:
@@ -401,9 +422,13 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateHVForValidLine failed!")
             return False
-        if not self.updateCrossClusterIdxForHVLine():
+        if not self.updateUnitAndRepeatForHVLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateCrossClusterIdxForHVLine failed!")
+            print("\t updateUnitAndRepeatForHVLine failed!")
+            return False
+        if not self.updateCrossClusterIdxForUnitLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateCrossClusterIdxForUnitLine failed!")
             return False
         if not self.updateMaybeLayoutForCrossClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -463,7 +488,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['test1']
+    config = CONFIG_COLLECTION['3']
 
     renderer = DXFRenderer(config)
     renderer.render()
