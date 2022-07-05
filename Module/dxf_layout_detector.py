@@ -90,6 +90,9 @@ class DXFLayoutDetector(DXFRenderer):
     def updateOuterLineCluster(self):
         #  self.updateOuterLineClusterByArea()
         self.updateOuterLineClusterByLineNum()
+
+        for line in self.outer_line_cluster.line_list:
+            line.setLabel("Layout")
         return True
 
     def updateDoorArcList(self):
@@ -346,9 +349,6 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
-
-        #  self.drawLabel("Valid", [255, 255, 255])
-
         self.drawOuterLineCluster([0, 255, 0])
 
         self.drawDoorArcList([0, 0, 255])
