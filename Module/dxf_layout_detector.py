@@ -3,9 +3,7 @@
 
 from cv2 import waitKey
 
-from Config.configs import \
-    LAYOUT_TEST1, LAYOUT_3, LAYOUT_4, LAYOUT_5, \
-    LAYOUT_6, LAYOUT_9, LAYOUT_10
+from Config.configs import CONFIG_COLLECTION
 
 from Data.line import Line
 from Data.line_cluster import LineCluster
@@ -14,7 +12,8 @@ from Method.cross_check import \
     isLineHorizontal, isLineVertical, \
     isLineParallel, isPointInArcArea, \
     getPointCrossLineListNum
-from Method.cluster import clusterLineByIdx
+from Method.cluster import \
+    clusterLineByCross, clusterLineBySimilar
 from Method.dists import getPointDist2, getLineDist2
 from Method.labels import \
     getShapeListWithLabel, getShapeListDictWithLabel
@@ -24,8 +23,6 @@ from Module.dxf_renderer import DXFRenderer
 class DXFLayoutDetector(DXFRenderer):
     def __init__(self, config):
         super(DXFLayoutDetector, self).__init__(config)
-
-        self.window_line_list = []
 
         self.detectLayout()
         return
@@ -38,8 +35,8 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateHVForValidLine(self):
-        k_0_max = 1e-6
-        k_inf_min = 1e6
+        k_0_max = self.config['k_0_max']
+        k_inf_min = self.config['k_inf_min']
 
         for line in self.line_list:
             valid_label = line.getLabel("Valid")
@@ -54,15 +51,15 @@ class DXFLayoutDetector(DXFRenderer):
                 line.setLabel("Vertical")
         return True
 
-    def updateClusterIdxForHVLine(self):
+    def updateCrossClusterIdxForHVLine(self):
         cluster_label_list = ["Horizontal", "Vertical"]
-        clusterLineByIdx(self.line_list, cluster_label_list, self.config['max_dist_error'])
+        clusterLineByCross(self.line_list, cluster_label_list, self.config['dist_error_max'])
         return True
 
-    def getMaybeLayoutLineListFromClusterByArea(self):
+    def getMaybeLayoutLineListFromCrossClusterByArea(self):
         layout_line_list = []
 
-        line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
+        line_list_dict = getShapeListDictWithLabel(self.line_list, "CrossCluster")
 
         max_bbox_area = 0
         for key in line_list_dict.keys():
@@ -74,10 +71,10 @@ class DXFLayoutDetector(DXFRenderer):
             layout_line_list = line_list
         return layout_line_list
 
-    def getMaybeLayoutLineListFromClusterLineNum(self):
+    def getMaybeLayoutLineListFromCrossClusterLineNum(self):
         layout_line_list = []
 
-        line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
+        line_list_dict = getShapeListDictWithLabel(self.line_list, "CrossCluster")
 
         max_line_num = 0
         for key in line_list_dict.keys():
@@ -89,9 +86,9 @@ class DXFLayoutDetector(DXFRenderer):
             layout_line_list = line_list
         return layout_line_list
 
-    def updateMaybeLayoutForClusterLine(self):
-        #  layout_line_list = self.getMaybeLayoutLineListFromClusterByArea()
-        layout_line_list = self.getMaybeLayoutLineListFromClusterLineNum()
+    def updateMaybeLayoutForCrossClusterLine(self):
+        #  layout_line_list = self.getMaybeLayoutLineListFromCrossClusterByArea()
+        layout_line_list = self.getMaybeLayoutLineListFromCrossClusterLineNum()
 
         for layout_line in layout_line_list:
             layout_line.setLabel("MaybeLayout")
@@ -110,7 +107,7 @@ class DXFLayoutDetector(DXFRenderer):
 
             for line in last_line_list:
                 start_point_cross_line_num = getPointCrossLineListNum(
-                    line.start_point, last_line_list, self.config['max_dist_error'] * 1000)
+                    line.start_point, last_line_list, self.config['dist_error_max'] * 1000)
                 if start_point_cross_line_num < 2:
                     find_single_connect_line = True
                     line.start_point.setLabel("SingleConnect")
@@ -118,7 +115,7 @@ class DXFLayoutDetector(DXFRenderer):
                     continue
 
                 end_point_cross_line_num = getPointCrossLineListNum(
-                    line.end_point, last_line_list, self.config['max_dist_error'] * 1000)
+                    line.end_point, last_line_list, self.config['dist_error_max'] * 1000)
                 if end_point_cross_line_num < 2:
                     find_single_connect_line = True
                     line.end_point.setLabel("SingleConnect")
@@ -154,9 +151,9 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateDoorForLayoutLine(self):
-        angle_error_max = 5
-        k_0_max = 1e-6
-        k_inf_min = 1e6
+        angle_error_max = self.config['angle_error_max']
+        k_0_max = self.config['k_0_max']
+        k_inf_min = self.config['k_inf_min']
 
         arc_line_pair_list = []
 
@@ -272,7 +269,14 @@ class DXFLayoutDetector(DXFRenderer):
             arc.removeLabel("MaybeDoor", True)
         return True
 
+    def updateSimilarClusterIdxForLayoutLine(self):
+        cluster_label_list = ["Layout"]
+        clusterLineBySimilar(self.line_list, cluster_label_list, self.config['dist_error_max'])
+        return True
+
     def updateWindowForLayoutLine(self):
+        line_list = getShapeListWithLabel(self.line_list, "Layout")
+
         return True
 
     def detectLayout(self):
@@ -287,13 +291,13 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateHVForValidLine failed!")
             return False
-        if not self.updateClusterIdxForHVLine():
+        if not self.updateCrossClusterIdxForHVLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateClusterIdxForHVLine failed!")
+            print("\t updateCrossClusterIdxForHVLine failed!")
             return False
-        if not self.updateMaybeLayoutForClusterLine():
+        if not self.updateMaybeLayoutForCrossClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateMaybeLayoutForClusterLine failed!")
+            print("\t updateMaybeLayoutForCrossClusterLine failed!")
             return False
         if not self.updateLayoutAndSingleConnectForMaybeLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -332,7 +336,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = LAYOUT_TEST1
+    config = CONFIG_COLLECTION['test1']
 
     renderer = DXFRenderer(config)
     renderer.render()
@@ -342,7 +346,7 @@ def demo_debug():
     return True
 
 def demo():
-    config = LAYOUT_TEST1
+    config = CONFIG_COLLECTION['test1']
 
     dxf_layout_detector = DXFLayoutDetector(config)
     dxf_layout_detector.outputInfo()
