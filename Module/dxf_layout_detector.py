@@ -25,8 +25,6 @@ class DXFLayoutDetector(DXFRenderer):
     def __init__(self, config):
         super(DXFLayoutDetector, self).__init__(config)
 
-        self.outer_line_list = []
-
         self.single_connect_removed_line_list = []
         self.single_connect_point_list = []
         self.single_connect_line_list = []
@@ -68,7 +66,9 @@ class DXFLayoutDetector(DXFRenderer):
         clusterLineByIdx(self.line_list, cluster_label_list, self.config['max_dist_error'])
         return True
 
-    def updateOuterLineListByArea(self):
+    def getOuterLineListByArea(self):
+        outer_line_list = []
+
         line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
 
         max_bbox_area = 0
@@ -78,10 +78,12 @@ class DXFLayoutDetector(DXFRenderer):
             if current_bbox_area <= max_bbox_area:
                 continue
             max_bbox_area = current_bbox_area
-            self.outer_line_list = line_list
-        return True
+            outer_line_list = line_list
+        return outer_line_list
 
-    def updateOuterLineListByLineNum(self):
+    def getOuterLineListByLineNum(self):
+        outer_line_list = []
+
         line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
 
         max_line_num = 0
@@ -91,16 +93,19 @@ class DXFLayoutDetector(DXFRenderer):
             if current_line_num <= max_line_num:
                 continue
             max_line_num = current_line_num
-            self.outer_line_list = line_list
-        return True
+            outer_line_list = line_list
+        return outer_line_list
 
     def updateOuterLineCluster(self):
-        #  self.updateOuterLineListByArea()
-        self.updateOuterLineListByLineNum()
+        #  outer_line_list = self.getOuterLineListByArea()
+        outer_line_list = self.getOuterLineListByLineNum()
+
+        for outer_line in outer_line_list:
+            outer_line.setLabel("OuterLine")
         return True
 
     def updateSingleConnectLineRemovedLineList(self):
-        self.single_connect_removed_line_list = self.outer_line_list
+        self.single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "OuterLine")
         last_line_list = []
 
         find_single_connect_line = True
@@ -306,6 +311,8 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateWindowLineList failed!")
             return False
+
+        self.outputLabel()
         return True
 
     def drawShape(self):

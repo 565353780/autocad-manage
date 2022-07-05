@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-def getShapeListWithLabel(shape_list, label, label_value=True):
+def getShapeListWithLabel(shape_list, label, label_value=None):
     shape_list_with_label = []
     for shape in shape_list:
-        shape_label = shape.getLabel(label)
-        if shape_label is None:
-            continue
-        if shape_label != label_value:
+        if not shape.isMatchLabel(label, label_value):
             continue
         shape_list_with_label.append(shape)
     return shape_list_with_label
+
+def getShapeListWithLabelList(shape_list, label_list, label_value_list=None):
+    shape_list_with_label_list = []
+    for shape in shape_list:
+        if not shape.isMatchLabelList(label_list, label_value_list):
+            continue
+        shape_list_with_label_list.append(shape)
+    return shape_list_with_label_list
 
 def getShapeListDictWithLabel(shape_list, label):
     shape_list_dict_with_label = {}

@@ -30,3 +30,29 @@ class Label(object):
             label_str = label_str[:-1]
         return label_str
 
+    def isMatchLabel(self, label, label_value=None):
+        current_label_value = self.getLabel(label)
+        if current_label_value is None:
+            return False
+
+        if label_value is None:
+            return True
+
+        if label_value is True:
+            if current_label_value is True:
+                return True
+            return False
+
+        if current_label_value == label_value:
+            return True
+        return False
+
+    def isMatchLabelList(self, label_list, label_value_list=None):
+        if label_value_list is None:
+            label_value_list = [None for _ in label_list]
+
+        for label, label_value in zip(label_list, label_value_list):
+            if not self.isMatchLabel(label, label_value):
+                return False
+        return True
+
