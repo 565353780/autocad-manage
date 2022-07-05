@@ -19,7 +19,7 @@ class Label(object):
         for key in self.label_dict:
             label_str += key
             value = self.label_dict[key]
-            if value != True:
+            if value is not True:
                 label_str += str(self.label_dict[key])
             label_str += "_"
 
