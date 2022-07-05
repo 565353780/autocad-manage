@@ -10,10 +10,12 @@ from Config.configs import \
     LAYOUT_6, LAYOUT_9, LAYOUT_10
 
 from Data.line import Line
+from Data.line_cluster import LineCluster
 
 from Method.cross_check import \
     isLineHorizontal, isLineVertical, \
-    isLineParallel, isPointInArcArea
+    isLineParallel, isPointInArcArea, \
+    getLineCrossLineListNum
 from Method.cluster import clusterLineByIdx
 from Method.dists import getPointDist2, getLineDist2
 
@@ -25,9 +27,9 @@ class DXFLayoutDetector(DXFRenderer):
 
         self.line_cluster_list = []
         self.outer_line_cluster = None
+        self.single_connect_removed_line_cluster = None
         self.door_arc_list = []
         self.door_line_list = []
-        self.door_removed_line_cluster = None
 
         self.detectLayout()
         return
@@ -91,7 +93,20 @@ class DXFLayoutDetector(DXFRenderer):
         #  self.updateOuterLineClusterByArea()
         self.updateOuterLineClusterByLineNum()
 
-        for line in self.outer_line_cluster.line_list:
+        return True
+
+    def updateSingleConnectLineRemovedLineCluster(self):
+        self.single_connect_removed_line_cluster = LineCluster()
+
+        line_list = self.outer_line_cluster.line_list
+
+        for line in line_list:
+            cross_num = getLineCrossLineListNum(line, line_list, self.config['max_dist_error'])
+            if cross_num < 2:
+                continue
+            self.single_connect_removed_line_cluster.addLine(line)
+
+        for line in self.single_connect_removed_line_cluster.line_list:
             line.setLabel("Layout")
         return True
 
@@ -129,7 +144,7 @@ class DXFLayoutDetector(DXFRenderer):
             end_line = Line(center, end_point)
             arc_line_pair_list.append([start_line, end_line])
 
-        line_list = self.outer_line_cluster.line_list
+        line_list = self.single_connect_removed_line_cluster.line_list
 
         valid_door_arc_list = []
         door_line_pair_pair_list = []
@@ -219,9 +234,14 @@ class DXFLayoutDetector(DXFRenderer):
                 self.door_line_list += door_line_pair
 
         self.door_line_list += extra_door_line_list
-        return True
 
-    def updateDoorRemovedLineCluster(self):
+        door_idx = 0
+        for arc, door_line_pair_pair in zip(self.door_arc_list, door_line_pair_pair_list):
+            arc.setLabel("Door", door_idx)
+            for door_line_pair in door_line_pair_pair:
+                for door_line in door_line_pair:
+                    door_line.setLabel("Door", door_idx)
+            door_idx += 1
         return True
 
     def detectLayout(self):
@@ -244,6 +264,10 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateOuterLineCluster failed!")
             return False
+        if not self.updateSingleConnectLineRemovedLineCluster():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateSingleConnectLineRemovedLineCluster failed!")
+            return False
         if not self.updateDoorArcList():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateDoorArcList failed!")
@@ -251,10 +275,6 @@ class DXFLayoutDetector(DXFRenderer):
         if not self.updateDoorLineList():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateDoorLineList failed!")
-            return False
-        if not self.updateDoorRemovedLineCluster():
-            print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateDoorRemovedLineCluster failed!")
             return False
         return True
 
@@ -336,20 +356,8 @@ class DXFLayoutDetector(DXFRenderer):
                      1, 4)
         return True
 
-    def drawDoorRemovedLineCluster(self):
-        draw_color = [255, 0, 255]
-        for line in self.door_removed_line_cluster.line_list:
-            start_point_in_image = self.getImagePosition(line.start_point)
-            end_point_in_image = self.getImagePosition(line.end_point)
-            cv2.line(self.image,
-                     (start_point_in_image.x, start_point_in_image.y),
-                     (end_point_in_image.x, end_point_in_image.y),
-                     np.array(draw_color, dtype=np.float) / 255.0,
-                     1, 4)
-        return True
-
     def drawShape(self):
-        self.drawOuterLineCluster([0, 255, 0])
+        self.drawOuterLineCluster([255, 255, 255])
 
         self.drawDoorArcList([0, 0, 255])
         self.drawDoorLineList([0, 0, 255])
