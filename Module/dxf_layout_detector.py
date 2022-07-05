@@ -14,6 +14,7 @@ from Method.cross_check import \
     isLineListCross, isPointInArcArea, \
     getPointCrossLineListNum
 from Method.similar_check import isHaveSameLine
+from Method.connect_check import isLineListConnectInAllLineList
 from Method.cluster import \
     clusterLineByCross, clusterLineBySimilar
 from Method.dists import getPointDist2, getLineDist2
@@ -371,7 +372,7 @@ class DXFLayoutDetector(DXFRenderer):
                 cross_window_key_list.append(key_1)
 
         merged_maybe_window_dict = {}
-        for key, item in maybe_window_dict.items():
+        for key, window_line_list in maybe_window_dict.items():
             key_need_to_merge = False
             key_in_merge_list = None
             for merge_key_list in merge_key_list_list:
@@ -381,18 +382,18 @@ class DXFLayoutDetector(DXFRenderer):
                     break
 
             if not key_need_to_merge:
-                merged_maybe_window_dict[key] = item
+                merged_maybe_window_dict[key] = window_line_list
                 continue
 
             find_saved_key = False
             for merge_key in key_in_merge_list:
                 if merge_key in merged_maybe_window_dict:
-                    merged_maybe_window_dict[merge_key] += item
+                    merged_maybe_window_dict[merge_key] += window_line_list
                     find_saved_key = True
                     break
 
             if not find_saved_key:
-                merged_maybe_window_dict[key] = item
+                merged_maybe_window_dict[key] = window_line_list
 
         window_idx = 0
         for key, line_list in merged_maybe_window_dict.items():
@@ -406,7 +407,18 @@ class DXFLayoutDetector(DXFRenderer):
             line.removeLabel("MaybeWindow", True)
         return True
 
-    def updateWindowForNoCrossWindowLine(self):
+    def updateConnectWindowForNoCrossWindowLine(self):
+        layout_line_list = getShapeListWithLabel(self.line_list, "Layout")
+        no_cross_window_dict = getShapeListDictWithLabel(self.line_list, "NoCrossWindow")
+
+        for _, window_line_list in no_cross_window_dict.items():
+            if isLineListConnectInAllLineList(window_line_list, layout_line_list,
+                                              self.config['dist_error_max']):
+                for line in window_line_list:
+                    line.setLabel("ConnectWindow")
+                continue
+            for line in window_line_list:
+                line.setLabel("DisconnectWindow")
         return True
 
     def detectLayout(self):
@@ -457,9 +469,9 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateNoCrossWindowForMaybeWindowLine failed!")
             return False
-        if not self.updateWindowForNoCrossWindowLine():
+        if not self.updateConnectWindowForNoCrossWindowLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateWindowForNoCrossWindowLine failed!")
+            print("\t updateConnectWindowForNoCrossWindowLine failed!")
             return False
 
         self.outputLabel([
@@ -476,7 +488,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
         self.drawLineList(getShapeListWithLabel(self.line_list, "Door"), [0, 0, 255])
 
-        self.drawLineList(getShapeListWithLabel(self.line_list, "NoCrossWindow"), [0, 255, 0])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "ConnectWindow"), [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):
@@ -487,7 +499,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['3']
+    config = CONFIG_COLLECTION['4']
 
     renderer = DXFRenderer(config)
     renderer.render()
