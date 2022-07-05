@@ -400,7 +400,6 @@ class DXFLayoutDetector(DXFRenderer):
                 continue
             for line in line_list:
                 line.setLabel("NoCrossWindow", window_idx)
-                line.outputInfo()
             window_idx += 1
 
         for line in self.line_list:
