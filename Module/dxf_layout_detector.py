@@ -18,7 +18,7 @@ from Method.connect_check import \
     isLineListConnectInAllLineList, isLineListUniform
 from Method.cluster import \
     clusterLineByCross, clusterLineBySimilar
-from Method.dists import getPointDist2, getLineDist2
+from Method.dists import getPointDist2, getPointDist, getLineDist2
 from Method.labels import \
     getShapeListWithLabel, getShapeListWithAnyLabelList, \
     getShapeListDictWithLabel
@@ -177,6 +177,7 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateDoorForLayoutLine(self):
+        dist_error_max = self.config['dist_error_max']
         angle_error_max = self.config['angle_error_max']
         k_0_max = self.config['k_0_max']
         k_inf_min = self.config['k_inf_min']
@@ -235,6 +236,12 @@ class DXFLayoutDetector(DXFRenderer):
 
                 if not isLineParallel(arc_line, first_min_dist_line, angle_error_max) and \
                         not isLineParallel(arc_line, second_min_dist_line, angle_error_max):
+                    continue
+
+                point_dist_s = getPointDist(first_min_dist_line.start_point, arc_line.end_point)
+                point_dist_e = getPointDist(first_min_dist_line.end_point, arc_line.end_point)
+                point_min_dist = min(point_dist_s, point_dist_e)
+                if point_min_dist > dist_error_max:
                     continue
 
                 door_line_pair_pair.append([line_list[first_line_idx], line_list[second_line_idx]])
@@ -416,7 +423,7 @@ class DXFLayoutDetector(DXFRenderer):
         disconnect_window_idx = 0
         for _, window_line_list in no_cross_window_dict.items():
             if isLineListConnectInAllLineList(window_line_list, layout_line_list,
-                                              self.config['dist_error_max'] * 1000):
+                                              self.config['dist_error_max']):
                 for line in window_line_list:
                     line.setLabel("ConnectWindow", connect_window_idx)
                 connect_window_idx += 1
@@ -515,9 +522,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawLineLabel("Layout", [255, 255, 255])
         self.drawArcLabel("Door", [0, 0, 255])
         self.drawLineLabel("Door", [0, 0, 255])
-
-        #  self.drawLineList(getShapeListWithLabel(self.line_list, "ConnectWindow"), [0, 255, 0])
-        self.drawLineLabel("ConnectWindow")
+        self.drawLineLabel("UniformDistWindow", [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):
