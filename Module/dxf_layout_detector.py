@@ -59,7 +59,7 @@ class DXFLayoutDetector(DXFRenderer):
         clusterLineByIdx(self.line_list, cluster_label_list, self.config['max_dist_error'])
         return True
 
-    def getOuterLineListFromClusterByArea(self):
+    def getMaybeLayoutLineListFromClusterByArea(self):
         outer_line_list = []
 
         line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
@@ -74,7 +74,7 @@ class DXFLayoutDetector(DXFRenderer):
             outer_line_list = line_list
         return outer_line_list
 
-    def getOuterLineListFromClusterLineNum(self):
+    def getMaybeLayoutLineListFromClusterLineNum(self):
         outer_line_list = []
 
         line_list_dict = getShapeListDictWithLabel(self.line_list, "Cluster")
@@ -89,16 +89,16 @@ class DXFLayoutDetector(DXFRenderer):
             outer_line_list = line_list
         return outer_line_list
 
-    def updateOuterForClusterLine(self):
-        #  outer_line_list = self.getOuterLineListFromClusterByArea()
-        outer_line_list = self.getOuterLineListFromClusterLineNum()
+    def updateMaybeLayoutForClusterLine(self):
+        #  outer_line_list = self.getMaybeLayoutLineListFromClusterByArea()
+        outer_line_list = self.getMaybeLayoutLineListFromClusterLineNum()
 
         for outer_line in outer_line_list:
-            outer_line.setLabel("Outer")
+            outer_line.setLabel("MaybeLayout")
         return True
 
     def updateLayoutAndSingleConnectForOuterLine(self):
-        single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "Outer")
+        single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "MaybeLayout")
         last_line_list = []
 
         find_single_connect_line = True
@@ -129,6 +129,9 @@ class DXFLayoutDetector(DXFRenderer):
 
         for line in single_connect_removed_line_list:
             line.setLabel("Layout")
+
+        for line in self.line_list:
+            line.removeLabel("MaybeLayout", True)
         return True
 
     def updateMaybeDoorForArc(self):
@@ -150,7 +153,7 @@ class DXFLayoutDetector(DXFRenderer):
             arc.setLabel("MaybeDoor")
         return True
 
-    def updateDoorForOuterLine(self):
+    def updateDoorForLayoutLine(self):
         angle_error_max = 5
         k_0_max = 1e-6
         k_inf_min = 1e6
@@ -269,7 +272,7 @@ class DXFLayoutDetector(DXFRenderer):
             arc.removeLabel("MaybeDoor", True)
         return True
 
-    def updateWindowForOuterLine(self):
+    def updateWindowForLayoutLine(self):
         return True
 
     def detectLayout(self):
@@ -288,9 +291,9 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateClusterIdxForHVLine failed!")
             return False
-        if not self.updateOuterForClusterLine():
+        if not self.updateMaybeLayoutForClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateOuterForClusterLine failed!")
+            print("\t updateMaybeLayoutForClusterLine failed!")
             return False
         if not self.updateLayoutAndSingleConnectForOuterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -300,13 +303,13 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateMaybeDoorForArc failed!")
             return False
-        if not self.updateDoorForOuterLine():
+        if not self.updateDoorForLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateDoorForOuterLine failed!")
+            print("\t updateDoorForLayoutLine failed!")
             return False
-        if not self.updateWindowForOuterLine():
+        if not self.updateWindowForLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateWindowForOuterLine failed!")
+            print("\t updateWindowForLayoutLine failed!")
             return False
 
         self.outputLabel()
