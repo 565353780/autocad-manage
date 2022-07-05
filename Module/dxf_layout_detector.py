@@ -53,7 +53,11 @@ class DXFLayoutDetector(DXFRenderer):
 
     def updateCrossClusterIdxForHVLine(self):
         cluster_label_list = ["Horizontal", "Vertical"]
-        clusterLineByCross(self.line_list, cluster_label_list, self.config['dist_error_max'])
+        if not clusterLineByCross(self.line_list,
+                                  cluster_label_list,
+                                  self.config['dist_error_max']):
+            print("[ERROR][DXFLayoutDetector::updateCrossClusterIdxForHVLine]")
+            print("\t clusterLineByCross failed!")
         return True
 
     def getMaybeLayoutLineListFromCrossClusterByArea(self):
@@ -271,11 +275,25 @@ class DXFLayoutDetector(DXFRenderer):
 
     def updateSimilarClusterIdxForLayoutLine(self):
         cluster_label_list = ["Layout"]
-        clusterLineBySimilar(self.line_list, cluster_label_list, self.config['dist_error_max'])
+        if not clusterLineBySimilar(self.line_list,
+                                    cluster_label_list,
+                                    self.config['length_error_ratio_max'],
+                                    self.config['angle_error_max'],
+                                    self.config['dist_error_max']):
+            print("[ERROR][DXFLayoutDetector::updateSimilarClusterIdxForLayoutLine]")
+            print("\t clusterLineBySimilar failed!")
         return True
 
-    def updateWindowForLayoutLine(self):
-        line_list = getShapeListWithLabel(self.line_list, "Layout")
+    def updateWindowForSimilarClusterLine(self):
+        similar_cluster_dict = getShapeListDictWithLabel(self.line_list, "SimilarCluster")
+
+        window_idx = 0
+        for _, item in similar_cluster_dict.items():
+            if len(item) < 3:
+                continue
+            for line in item:
+                line.setLabel("MaybeWindow", window_idx)
+            window_idx += 1
 
         return True
 
@@ -311,12 +329,17 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateDoorForLayoutLine failed!")
             return False
-        if not self.updateWindowForLayoutLine():
+        if not self.updateSimilarClusterIdxForLayoutLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateSimilarClusterIdxForLayoutLine failed!")
+            return False
+        if not self.updateWindowForSimilarClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateWindowForLayoutLine failed!")
             return False
 
-        self.outputLabel()
+        self.outputLabel(["Valid", "Horizontal", "Vertical",
+                          "CrossCluster", "SimilarCluster"])
         return True
 
     def drawShape(self):
@@ -325,7 +348,9 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawArcList(getShapeListWithLabel(self.arc_list, "Door"), [0, 0, 255])
         self.drawLineList(getShapeListWithLabel(self.line_list, "Door"), [0, 0, 255])
 
-        self.drawLineList(getShapeListWithLabel(self.line_list, "SingleConnect"), [0, 255, 0])
+        self.drawLineList(getShapeListWithLabel(self.line_list, "SingleConnect"), [255, 0, 0])
+
+        self.drawLineList(getShapeListWithLabel(self.line_list, "MaybeWindow"), [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):
