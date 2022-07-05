@@ -14,9 +14,12 @@ class Label(object):
         value = self.label_dict.get(key)
         return value
 
-    def getLabelStr(self):
+    def getLabelStr(self, ignore_label_list=[]):
         label_str = ""
         for key in self.label_dict:
+            if key in ignore_label_list:
+                continue
+
             label_str += key
             value = self.label_dict[key]
             if value is not True:
@@ -24,7 +27,7 @@ class Label(object):
             label_str += "_"
 
         if label_str == "":
-            return "Unknown"
+            return "Empty"
 
         if label_str[-1] == "_":
             label_str = label_str[:-1]
