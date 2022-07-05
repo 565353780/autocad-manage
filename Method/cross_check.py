@@ -23,6 +23,37 @@ def isBBoxCross(bbox_1, bbox_2, max_dist_error=0):
         return False
     return True
 
+def isPointInBBox(point, bbox, max_dist_error=0):
+    if bbox.min_point.x - max_dist_error <= point.x <= bbox.max_point.x + max_dist_error and \
+            bbox.min_point.y - max_dist_error <= point.y <= bbox.max_point.y + max_dist_error and \
+            bbox.min_point.z - max_dist_error <= point.z <= bbox.max_point.z + max_dist_error:
+        return True
+    return False
+
+def isPointCrossLine(point, line, max_dist_error=0):
+    if not isPointInBBox(point, line.bbox, max_dist_error):
+        return False
+
+    if getPointDist(point, line.start_point) <= max_dist_error or \
+            getPointDist(point, line.end_point) <= max_dist_error:
+        return True
+
+    point_line_cross = cross(line.start_point, line.end_point, point)
+
+    point_dist_to_line = abs(point_line_cross) / line.getLength()
+
+    if point_dist_to_line <= max_dist_error:
+        return True
+    return False
+
+def getPointCrossLineListNum(point, line_list, max_dist_error=0):
+    point_cross_line_list_num = 0
+
+    for line in line_list:
+        if isPointCrossLine(point, line, max_dist_error):
+            point_cross_line_list_num += 1
+    return point_cross_line_list_num
+
 def isLineHorizontal(line, k_0_max=0):
     line_k = line.k
     if line_k == 0:
