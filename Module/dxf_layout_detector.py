@@ -24,12 +24,13 @@ class DXFLayoutDetector(DXFRenderer):
 
         self.line_cluster_list = []
         self.outer_line_cluster = None
-        self.single_connect_removed_line_list = []
-        self.door_arc_list = []
-        self.door_line_list = []
 
+        self.single_connect_removed_line_list = []
         self.single_connect_point_list = []
         self.single_connect_line_list = []
+
+        self.door_arc_list = []
+        self.door_line_list = []
 
         self.detectLayout()
         return
@@ -297,8 +298,6 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
-        self.drawLineList(self.outer_line_cluster.line_list, [255, 255, 255])
-
         self.drawLineList(self.single_connect_removed_line_list, [255, 255, 255])
 
         self.drawArcList(self.door_arc_list, [0, 0, 255])
@@ -306,7 +305,6 @@ class DXFLayoutDetector(DXFRenderer):
 
         self.drawPointList(self.single_connect_point_list, [0, 0, 255])
         self.drawLineList(self.single_connect_line_list, [0, 255, 0])
-
         return True
 
 def demo_with_edit_config(config, kv_list):
