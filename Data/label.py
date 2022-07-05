@@ -62,3 +62,12 @@ class Label(object):
                 return True
         return False
 
+    def removeLabel(self, label):
+        if not self.isMatchLabel(label):
+            print("[ERROR][Label::removeLabel]")
+            print("\t this label [" + label + "] not exist!")
+            return False
+
+        _ = self.label_dict.pop(label)
+        return True
+
