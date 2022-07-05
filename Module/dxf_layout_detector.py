@@ -416,7 +416,7 @@ class DXFLayoutDetector(DXFRenderer):
         disconnect_window_idx = 0
         for _, window_line_list in no_cross_window_dict.items():
             if isLineListConnectInAllLineList(window_line_list, layout_line_list,
-                                              self.config['dist_error_max']):
+                                              self.config['dist_error_max'] * 1000):
                 for line in window_line_list:
                     line.setLabel("ConnectWindow", connect_window_idx)
                 connect_window_idx += 1
@@ -432,7 +432,7 @@ class DXFLayoutDetector(DXFRenderer):
         uniform_dist_window_idx = 0
         random_dist_window_idx = 0
         for _, connect_window_line_list in connect_window_dict.items():
-            if isLineListUniform(connect_window_line_list):
+            if isLineListUniform(connect_window_line_list, self.config['uniform_dist_var_min']):
                 for line in connect_window_line_list:
                     line.setLabel("UniformDistWindow")
                 uniform_dist_window_idx += 1
