@@ -121,9 +121,30 @@ class DXFLayoutDetector(DXFRenderer):
             layout_line.setLabel("MaybeLayout")
         return True
 
+    def updateMaybeDoorForArc(self):
+        error_max = 40
+
+        max_radius = 0
+        door_arc_list = []
+        for arc in self.arc_list:
+            angles = abs(arc.end_angle - arc.start_angle)
+            angles_error = min(abs(angles - 90), abs(angles - 270))
+            if angles_error <= error_max:
+                door_arc_list.append(arc)
+                max_radius = max(max_radius, arc.radius)
+
+        radius_min = 0.5 * max_radius
+        for arc in door_arc_list:
+            if arc.radius < radius_min:
+                continue
+            arc.setLabel("MaybeDoor")
+        return True
+
     def updateLayoutAndSingleConnectForMaybeLayoutLine(self):
         single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "MaybeLayout")
         last_line_list = []
+
+        door_arc_list = getShapeListWithLabel(self.arc_list, "MaybeDoor")
 
         find_single_connect_line = True
         while find_single_connect_line:
@@ -133,7 +154,7 @@ class DXFLayoutDetector(DXFRenderer):
             single_connect_removed_line_list = []
 
             for line in last_line_list:
-                if isLineCrossArcList(line , self.arc_list, self.config['dist_error_max']):
+                if isLineCrossArcList(line , door_arc_list, self.config['dist_error_max']):
                     single_connect_removed_line_list.append(line)
                     continue
 
@@ -178,25 +199,6 @@ class DXFLayoutDetector(DXFRenderer):
 
         for layout_line in layout_line_list:
             layout_line.setLabel("ConnectLayout")
-        return True
-
-    def updateMaybeDoorForArc(self):
-        error_max = 40
-
-        max_radius = 0
-        door_arc_list = []
-        for arc in self.arc_list:
-            angles = abs(arc.end_angle - arc.start_angle)
-            angles_error = min(abs(angles - 90), abs(angles - 270))
-            if angles_error <= error_max:
-                door_arc_list.append(arc)
-                max_radius = max(max_radius, arc.radius)
-
-        radius_min = 0.5 * max_radius
-        for arc in door_arc_list:
-            if arc.radius < radius_min:
-                continue
-            arc.setLabel("MaybeDoor")
         return True
 
     def updateDoorForConnectLayoutLine(self):
@@ -497,6 +499,10 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateMaybeLayoutForCrossClusterLine failed!")
             return False
+        if not self.updateMaybeDoorForArc():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateMaybeDoorForArc failed!")
+            return False
         if not self.updateLayoutAndSingleConnectForMaybeLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateLayoutAndSingleConnectForMaybeLayoutLine failed!")
@@ -508,10 +514,6 @@ class DXFLayoutDetector(DXFRenderer):
         if not self.updateConnectLayoutForLayoutCrossClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateConnectLayoutForLayoutCrossClusterLine failed!")
-            return False
-        if not self.updateMaybeDoorForArc():
-            print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateMaybeDoorForArc failed!")
             return False
         if not self.updateDoorForConnectLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -562,7 +564,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['10']
+    config = CONFIG_COLLECTION['9']
 
     renderer = DXFRenderer(config)
     renderer.render()
