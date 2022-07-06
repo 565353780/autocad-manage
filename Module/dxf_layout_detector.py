@@ -11,8 +11,8 @@ from Data.line_cluster import LineCluster
 from Method.cross_check import \
     isLineHorizontal, isLineVertical, \
     isLineParallel, isLineListOnSameLines, \
-    isLineListCross, isPointInArcArea, \
-    getPointCrossLineListNum
+    isLineListCross, isLineCrossArcList, \
+    isPointInArcArea, getPointCrossLineListNum
 from Method.similar_check import isHaveSameLine
 from Method.connect_check import \
     isLineListConnectInAllLineList, isLineListUniform
@@ -73,19 +73,20 @@ class DXFLayoutDetector(DXFRenderer):
             line.setLabel("Repeat")
         return True
 
-    def updateCrossClusterIdxForUnitLine(self):
+    def updateCrossClusterForUnitLine(self):
         cluster_label_list = ["Unit"]
         if not clusterLineByCross(self.line_list,
                                   cluster_label_list,
+                                  "UnitCrossCluster",
                                   self.config['dist_error_max']):
-            print("[ERROR][DXFLayoutDetector::updateCrossClusterIdxForUnitLine]")
+            print("[ERROR][DXFLayoutDetector::updateCrossClusterForUnitLine]")
             print("\t clusterLineByCross failed!")
         return True
 
-    def getMaybeLayoutLineListFromCrossClusterByArea(self):
-        layout_line_list = []
+    def getMaxAreaLineListFromCluster(self, cluster_label):
+        max_area_line_list = []
 
-        line_list_dict = getShapeListDictWithLabel(self.line_list, "CrossCluster")
+        line_list_dict = getShapeListDictWithLabel(self.line_list, cluster_label)
 
         max_bbox_area = 0
         for key in line_list_dict.keys():
@@ -94,13 +95,13 @@ class DXFLayoutDetector(DXFRenderer):
             if current_bbox_area <= max_bbox_area:
                 continue
             max_bbox_area = current_bbox_area
-            layout_line_list = line_list
-        return layout_line_list
+            max_area_line_list = line_list
+        return max_area_line_list
 
-    def getMaybeLayoutLineListFromCrossClusterLineNum(self):
-        layout_line_list = []
+    def getMaxSizeLineListFromCluster(self, cluster_label):
+        max_size_line_list = []
 
-        line_list_dict = getShapeListDictWithLabel(self.line_list, "CrossCluster")
+        line_list_dict = getShapeListDictWithLabel(self.line_list, cluster_label)
 
         max_line_num = 0
         for key in line_list_dict.keys():
@@ -109,12 +110,12 @@ class DXFLayoutDetector(DXFRenderer):
             if current_line_num <= max_line_num:
                 continue
             max_line_num = current_line_num
-            layout_line_list = line_list
-        return layout_line_list
+            max_size_line_list = line_list
+        return max_size_line_list
 
     def updateMaybeLayoutForCrossClusterLine(self):
-        #  layout_line_list = self.getMaybeLayoutLineListFromCrossClusterByArea()
-        layout_line_list = self.getMaybeLayoutLineListFromCrossClusterLineNum()
+        #  layout_line_list = self.getMaxAreaLineListFromCluster("UnitCrossCluster")
+        layout_line_list = self.getMaxSizeLineListFromCluster("UnitCrossCluster")
 
         for layout_line in layout_line_list:
             layout_line.setLabel("MaybeLayout")
@@ -132,8 +133,12 @@ class DXFLayoutDetector(DXFRenderer):
             single_connect_removed_line_list = []
 
             for line in last_line_list:
+                if isLineCrossArcList(line , self.arc_list, self.config['dist_error_max']):
+                    single_connect_removed_line_list.append(line)
+                    continue
+
                 start_point_cross_line_num = getPointCrossLineListNum(
-                    line.start_point, last_line_list, self.config['dist_error_max'] * 1000)
+                    line.start_point, last_line_list, self.config['dist_error_max'] * 100)
                 if start_point_cross_line_num < 2:
                     find_single_connect_line = True
                     line.start_point.setLabel("SingleConnect")
@@ -141,7 +146,7 @@ class DXFLayoutDetector(DXFRenderer):
                     continue
 
                 end_point_cross_line_num = getPointCrossLineListNum(
-                    line.end_point, last_line_list, self.config['dist_error_max'] * 1000)
+                    line.end_point, last_line_list, self.config['dist_error_max'] * 100)
                 if end_point_cross_line_num < 2:
                     find_single_connect_line = True
                     line.end_point.setLabel("SingleConnect")
@@ -155,6 +160,24 @@ class DXFLayoutDetector(DXFRenderer):
 
         for line in self.line_list:
             line.removeLabel("MaybeLayout", True)
+        return True
+
+    def updateLayoutCrossClusterForLayoutLine(self):
+        cluster_label_list = ["Layout"]
+        if not clusterLineByCross(self.line_list,
+                                  cluster_label_list,
+                                  "LayoutCrossCluster",
+                                  self.config['dist_error_max']):
+            print("[ERROR][DXFLayoutDetector::updateLayoutCrossClusterForLayoutLine]")
+            print("\t clusterLineByCross failed!")
+        return True
+
+    def updateConnectLayoutForLayoutCrossClusterLine(self):
+        #  layout_line_list = self.getMaxAreaLineListFromCluster("LayoutCrossCluster")
+        layout_line_list = self.getMaxSizeLineListFromCluster("LayoutCrossCluster")
+
+        for layout_line in layout_line_list:
+            layout_line.setLabel("ConnectLayout")
         return True
 
     def updateMaybeDoorForArc(self):
@@ -176,7 +199,7 @@ class DXFLayoutDetector(DXFRenderer):
             arc.setLabel("MaybeDoor")
         return True
 
-    def updateDoorForLayoutLine(self):
+    def updateDoorForConnectLayoutLine(self):
         dist_error_max = self.config['dist_error_max']
         angle_error_max = self.config['angle_error_max']
         k_0_max = self.config['k_0_max']
@@ -193,7 +216,7 @@ class DXFLayoutDetector(DXFRenderer):
             end_line = Line(center, end_point)
             arc_line_pair_list.append([start_line, end_line])
 
-        line_list = getShapeListWithLabel(self.line_list, "Layout")
+        line_list = getShapeListWithLabel(self.line_list, "ConnectLayout")
 
         valid_door_arc_list = []
         door_line_pair_pair_list = []
@@ -302,14 +325,15 @@ class DXFLayoutDetector(DXFRenderer):
             arc.removeLabel("MaybeDoor", True)
         return True
 
-    def updateSimilarClusterIdxForLayoutLine(self):
-        cluster_label_list = ["Layout"]
+    def updateSimilarClusterIdxForConnectLayoutLine(self):
+        cluster_label_list = ["ConnectLayout"]
         if not clusterLineBySimilar(self.line_list,
                                     cluster_label_list,
+                                    "LayoutSimilarCluster",
                                     self.config['length_error_ratio_max'],
                                     self.config['angle_error_max'],
                                     self.config['dist_error_max']):
-            print("[ERROR][DXFLayoutDetector::updateSimilarClusterIdxForLayoutLine]")
+            print("[ERROR][DXFLayoutDetector::updateSimilarClusterIdxForConnectLayoutLine]")
             print("\t clusterLineBySimilar failed!")
         return True
 
@@ -317,7 +341,7 @@ class DXFLayoutDetector(DXFRenderer):
         window_line_num_min = self.config['window_line_num_min']
         window_line_num_max = self.config['window_line_num_max']
 
-        similar_cluster_dict = getShapeListDictWithLabel(self.line_list, "SimilarCluster")
+        similar_cluster_dict = getShapeListDictWithLabel(self.line_list, "LayoutSimilarCluster")
 
         window_idx = 0
         for _, line_list in similar_cluster_dict.items():
@@ -328,7 +352,7 @@ class DXFLayoutDetector(DXFRenderer):
             window_idx += 1
 
         for line in self.line_list:
-            line.removeLabel("SimilarCluster", True)
+            line.removeLabel("LayoutSimilarCluster", True)
         return True
 
     def updateNoCrossWindowForMaybeWindowLine(self):
@@ -415,8 +439,8 @@ class DXFLayoutDetector(DXFRenderer):
             line.removeLabel("MaybeWindow", True)
         return True
 
-    def updateConnectWindowForNoCrossWindowLine(self):
-        layout_line_list = getShapeListWithLabel(self.line_list, "Layout")
+    def updateConnectAndDisconnectWindowForNoCrossWindowLine(self):
+        layout_line_list = getShapeListWithLabel(self.line_list, "ConnectLayout")
         no_cross_window_dict = getShapeListDictWithLabel(self.line_list, "NoCrossWindow")
 
         connect_window_idx = 0
@@ -449,10 +473,6 @@ class DXFLayoutDetector(DXFRenderer):
             random_dist_window_idx += 1
         return True
 
-    def updateConnectWallWindowForUniformWindowLine(self):
-        uniform_window_dict = getShapeListDictWithLabel(self.line_list, "UniformDistWindow")
-        return True
-
     def detectLayout(self):
         self.circle_list = []
         self.updateBBox()
@@ -469,9 +489,9 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateUnitAndRepeatForHVLine failed!")
             return False
-        if not self.updateCrossClusterIdxForUnitLine():
+        if not self.updateCrossClusterForUnitLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateCrossClusterIdxForUnitLine failed!")
+            print("\t updateCrossClusterForUnitLine failed!")
             return False
         if not self.updateMaybeLayoutForCrossClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -481,17 +501,25 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateLayoutAndSingleConnectForMaybeLayoutLine failed!")
             return False
+        if not self.updateLayoutCrossClusterForLayoutLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateLayoutCrossClusterForLayoutLine failed!")
+            return False
+        if not self.updateConnectLayoutForLayoutCrossClusterLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateConnectLayoutForLayoutCrossClusterLine failed!")
+            return False
         if not self.updateMaybeDoorForArc():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateMaybeDoorForArc failed!")
             return False
-        if not self.updateDoorForLayoutLine():
+        if not self.updateDoorForConnectLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateDoorForLayoutLine failed!")
+            print("\t updateDoorForConnectLayoutLine failed!")
             return False
-        if not self.updateSimilarClusterIdxForLayoutLine():
+        if not self.updateSimilarClusterIdxForConnectLayoutLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateSimilarClusterIdxForLayoutLine failed!")
+            print("\t updateSimilarClusterIdxForConnectLayoutLine failed!")
             return False
         if not self.updateMaybeWindowForSimilarClusterLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -501,9 +529,9 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateNoCrossWindowForMaybeWindowLine failed!")
             return False
-        if not self.updateConnectWindowForNoCrossWindowLine():
+        if not self.updateConnectAndDisconnectWindowForNoCrossWindowLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateConnectWindowForNoCrossWindowLine failed!")
+            print("\t updateConnectAndDisconnectWindowForNoCrossWindowLine failed!")
             return False
         if not self.updateUniformAndRandomDistWindowForConnectWindowLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -513,13 +541,14 @@ class DXFLayoutDetector(DXFRenderer):
         self.outputLabel([
             "Valid",
             "Horizontal", "Vertical",
-            "CrossCluster",
+            "UnitCrossCluster",
+            "LayoutCrossCluster",
             "SingleConnect",
         ])
         return True
 
     def drawShape(self):
-        self.drawLineLabel("Layout", [255, 255, 255])
+        self.drawLineLabel("ConnectLayout", [255, 255, 255])
         self.drawArcLabel("Door", [0, 0, 255])
         self.drawLineLabel("Door", [0, 0, 255])
         self.drawLineLabel("UniformDistWindow", [0, 255, 0])
@@ -533,7 +562,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['3']
+    config = CONFIG_COLLECTION['10']
 
     renderer = DXFRenderer(config)
     renderer.render()
