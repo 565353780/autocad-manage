@@ -93,7 +93,7 @@ def isLineListConnectInAllLineList(line_list, all_line_list, dist_error_max=0):
 
     return True
 
-def isLineListUniform(line_list, var_min=1000):
+def isLineListUniform(line_list, var_min=2000):
     if len(line_list) < 3:
         return True
 
