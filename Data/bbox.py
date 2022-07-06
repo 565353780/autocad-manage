@@ -151,6 +151,15 @@ class BBox(object):
         area = self.diff_point.x * self.diff_point.y
         return area
 
+    def getBoundPointList(self):
+        leftdown_point = Point(self.min_point.x, self.min_point.y)
+        leftup_point = Point(self.min_point.x, self.max_point.y)
+        rightdown_point = Point(self.max_point.x, self.min_point.y)
+        rightup_point = Point(self.max_point.x, self.max_point.y)
+
+        bound_point_list = [leftdown_point, leftup_point, rightdown_point, rightup_point]
+        return bound_point_list
+
     def outputInfo(self, info_level):
         line_start = "\t" * info_level
         print(line_start + "[BBox]")
