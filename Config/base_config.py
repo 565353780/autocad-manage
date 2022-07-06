@@ -11,7 +11,7 @@ BASE_CONFIG = {
     'k_inf_min': 1e6,
     'window_line_num_min': 3,
     'window_line_num_max': 4,
-    'uniform_dist_var_min': 1000,
+    'uniform_dist_var_min': 2000,
     'image_width': 1600 * 1.2,
     'image_height': 900 * 1.2,
     'free_width': 50,
