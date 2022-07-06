@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy as np
 from cv2 import waitKey
 
 from Config.configs import CONFIG_COLLECTION
@@ -9,19 +10,15 @@ from Data.line import Line
 from Data.line_cluster import LineCluster
 
 from Method.cross_check import \
-    isLineHorizontal, isLineVertical, \
-    isLineParallel, isLineListOnSameLines, \
-    isLineListCross, isLineCrossArcList, \
-    isPointInArcArea, getPointCrossLineListNum
+    isPointCrossLineList, getPointCrossLineListNum, isPointInArcArea, \
+    isLineHorizontal, isLineVertical, isLineParallel, isLineListOnSameLines, \
+    isLineListCross, isLineCrossArcList
 from Method.similar_check import isHaveSameLine
-from Method.connect_check import \
-    isLineListConnectInAllLineList, isLineListUniform
-from Method.cluster import \
-    clusterLineByCross, clusterLineBySimilar
-from Method.dists import getPointDist2, getPointDist, getLineDist2
+from Method.connect_check import isLineListConnectInAllLineList, isLineListUniform
+from Method.cluster import clusterLineByCross, clusterLineBySimilar
+from Method.dists import getPointDist2, getPointDist, getLineDist, getLineDist2
 from Method.labels import \
-    getShapeListWithLabel, getShapeListWithAnyLabelList, \
-    getShapeListDictWithLabel
+    getShapeListWithLabel, getShapeListWithAnyLabelList, getShapeListDictWithLabel
 
 from Module.dxf_renderer import DXFRenderer
 
@@ -43,17 +40,70 @@ class DXFLayoutDetector(DXFRenderer):
         k_0_max = self.config['k_0_max']
         k_inf_min = self.config['k_inf_min']
 
-        for line in self.line_list:
-            valid_label = line.getLabel("Valid")
-            if valid_label is None:
-                continue
+        line_list = getShapeListWithLabel(self.line_list, "Valid")
 
+        for line in line_list:
             if isLineHorizontal(line, k_0_max):
                 line.setLabel("Horizontal")
                 continue
 
             if isLineVertical(line, k_inf_min):
                 line.setLabel("Vertical")
+        return True
+
+    def updateCabinetForValidLine(self):
+        cabinet_angle_error_max = 10
+
+        line_list = getShapeListWithLabel(self.line_list, "Valid", None, ["Horizontal", "Vertical"])
+
+        selected_line_idx_pair_list = []
+        selected_line_length_pair_list = []
+        for i in range(len(line_list) - 1):
+            if i in selected_line_idx_pair_list:
+                continue
+
+            abs_angle_1 = abs(line_list[i].getAngle())
+            if abs_angle_1 < cabinet_angle_error_max or \
+                    abs_angle_1 > 90 - cabinet_angle_error_max:
+                continue
+
+            length_1 = line_list[i].getLength()
+
+            middle_point_1 = line_list[i].getMiddlePoint()
+            for j in range(i + 1, len(line_list)):
+                if j in selected_line_idx_pair_list:
+                    continue
+
+                abs_angle_2 = abs(line_list[j].getAngle())
+                if abs_angle_2 < cabinet_angle_error_max or \
+                        abs_angle_2 > 90 - cabinet_angle_error_max:
+                    continue
+
+                if abs(abs_angle_1 - abs_angle_2) > self.config['angle_error_max']:
+                    continue
+
+                length_2 = line_list[j].getLength()
+                if abs(length_1 - length_2) > self.config['dist_error_max']:
+                    continue
+
+                middle_point_2 = line_list[j].getMiddlePoint()
+                point_dist = getPointDist(middle_point_1, middle_point_2)
+                if point_dist > self.config['dist_error_max']:
+                    continue
+
+                selected_line_idx_pair_list.append([i, j])
+                selected_line_length_pair_list.append([length_1, length_2])
+
+        selected_line_length_max = np.max(selected_line_length_pair_list)
+        length_min = selected_line_length_max / 10.0
+
+        cabinet_idx = 0
+        for idx_pair, length_pair in zip(selected_line_idx_pair_list, selected_line_length_pair_list):
+            if min(length_pair) < length_min:
+                continue
+            line_list[idx_pair[0]].setLabel("MaybeCabinet", cabinet_idx)
+            line_list[idx_pair[1]].setLabel("MaybeCabinet", cabinet_idx)
+            cabinet_idx += 1
         return True
 
     def updateUnitAndRepeatForHVLine(self):
@@ -487,6 +537,10 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateHVForValidLine failed!")
             return False
+        if not self.updateCabinetForValidLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateCabinetForValidLine failed!")
+            return False
         if not self.updateUnitAndRepeatForHVLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateUnitAndRepeatForHVLine failed!")
@@ -554,6 +608,8 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawArcLabel("Door", [0, 0, 255])
         self.drawLineLabel("Door", [0, 0, 255])
         self.drawLineLabel("UniformDistWindow", [0, 255, 0])
+
+        self.drawLineLabel("MaybeCabinet", [255, 0, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):
@@ -564,7 +620,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['6']
+    config = CONFIG_COLLECTION['3']
 
     renderer = DXFRenderer(config)
     renderer.render()
