@@ -228,6 +228,26 @@ def isLineListCross(line_list_1, line_list_2, dist_error_max=0):
             return True
     return False
 
+def isPointCrossArc(point, arc, dist_error_max=0):
+    line_list = []
+    for i in range(len(arc.flatten_point_list) - 1):
+        arc_line = Line(arc.flatten_point_list[i], arc.flatten_point_list[i + 1])
+        line_list.append(arc_line)
+    return isPointCrossLineList(point, line_list, dist_error_max)
+
+def isLineCrossArc(line, arc, dist_error_max=0):
+    line_list = []
+    for i in range(len(arc.flatten_point_list) - 1):
+        arc_line = Line(arc.flatten_point_list[i], arc.flatten_point_list[i + 1])
+        line_list.append(arc_line)
+    return isLineCrossLineList(line, line_list, dist_error_max)
+
+def isLineCrossArcList(line, arc_list, dist_error_max=0):
+    for arc in arc_list:
+        if isLineCrossArc(line, arc, dist_error_max):
+            return True
+    return False
+
 def isPointInArcArea(point, arc):
     point_line = Line(arc.center, point)
     if point_line.isPoint():
