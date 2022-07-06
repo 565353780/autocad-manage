@@ -14,9 +14,10 @@ from Method.cross_check import \
     isLineHorizontal, isLineVertical, isLineParallel, isLineListOnSameLines, \
     isLineListCross, isLineCrossArcList
 from Method.similar_check import isHaveSameLine
-from Method.connect_check import isLineListConnectInAllLineList, isLineListUniform
+from Method.connect_check import \
+    isLineListConnectInAllLineList, isLineConnectInLineList, isLineListUniform
 from Method.cluster import clusterLineByCross, clusterLineBySimilar
-from Method.dists import getPointDist2, getPointDist, getLineDist, getLineDist2
+from Method.dists import getPointDist2, getPointDist, getLineDist2, getMinDistWithLineIdx
 from Method.labels import \
     getShapeListWithLabel, getShapeListWithAnyLabelList, getShapeListDictWithLabel
 
@@ -51,7 +52,7 @@ class DXFLayoutDetector(DXFRenderer):
                 line.setLabel("Vertical")
         return True
 
-    def updateCabinetForValidLine(self):
+    def updateCabinetForValidWithoutHVLine(self):
         cabinet_angle_error_max = 10
 
         line_list = getShapeListWithLabel(self.line_list, "Valid", None, ["Horizontal", "Vertical"])
@@ -94,6 +95,9 @@ class DXFLayoutDetector(DXFRenderer):
                 selected_line_idx_pair_list.append([i, j])
                 selected_line_length_pair_list.append([length_1, length_2])
 
+        if len(selected_line_length_pair_list) == 0:
+            return True
+
         selected_line_length_max = np.max(selected_line_length_pair_list)
         length_min = selected_line_length_max / 10.0
 
@@ -101,9 +105,34 @@ class DXFLayoutDetector(DXFRenderer):
         for idx_pair, length_pair in zip(selected_line_idx_pair_list, selected_line_length_pair_list):
             if min(length_pair) < length_min:
                 continue
-            line_list[idx_pair[0]].setLabel("MaybeCabinet", cabinet_idx)
-            line_list[idx_pair[1]].setLabel("MaybeCabinet", cabinet_idx)
+            line_list[idx_pair[0]].setLabel("Cabinet", cabinet_idx)
+            line_list[idx_pair[1]].setLabel("Cabinet", cabinet_idx)
             cabinet_idx += 1
+        return True
+
+    def updateCabinetBBoxForHVLine(self):
+        line_list_dict = getShapeListDictWithLabel(self.line_list, "Cabinet")
+
+        line_list = getShapeListWithAnyLabelList(self.line_list, ["Horizontal", "Vertical"])
+
+        for key, cabinet_line_list in line_list_dict.items():
+            line_cluster = LineCluster(cabinet_line_list)
+            bound_point_list = line_cluster.bbox.getBoundPointList()
+            bound_line_list = [
+                Line(bound_point_list[0], bound_point_list[1]),
+                Line(bound_point_list[0], bound_point_list[2]),
+                Line(bound_point_list[1], bound_point_list[3]),
+                Line(bound_point_list[2], bound_point_list[3])]
+
+            for bound_line in bound_line_list:
+                if not isLineConnectInLineList(bound_line, line_list):
+                    continue
+
+                min_dist, min_dist_idx = getMinDistWithLineIdx(bound_line, line_list)
+                if min_dist > self.config['dist_error_max'] * 10:
+                    break
+
+                line_list[min_dist_idx].setLabel("CabinetBBox", int(key))
         return True
 
     def updateUnitAndRepeatForHVLine(self):
@@ -537,9 +566,13 @@ class DXFLayoutDetector(DXFRenderer):
             print("[ERROR][DXFLayoutDetector::detectLayout]")
             print("\t updateHVForValidLine failed!")
             return False
-        if not self.updateCabinetForValidLine():
+        if not self.updateCabinetForValidWithoutHVLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateCabinetForValidLine failed!")
+            print("\t updateCabinetForValidWithoutHVLine failed!")
+            return False
+        if not self.updateCabinetBBoxForHVLine():
+            print("[ERROR][DXFLayoutDetector::detectLayout]")
+            print("\t updateCabinetBBoxForHVLine failed!")
             return False
         if not self.updateUnitAndRepeatForHVLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
@@ -597,6 +630,7 @@ class DXFLayoutDetector(DXFRenderer):
         self.outputLabel([
             "Valid",
             "Horizontal", "Vertical",
+            "Cabinet", "CabinetBBox",
             "Unit", "UnitCrossCluster",
             "Layout", "LayoutCrossCluster",
             "SingleConnect",
@@ -605,11 +639,14 @@ class DXFLayoutDetector(DXFRenderer):
 
     def drawShape(self):
         self.drawLineLabel("ConnectLayout", [255, 255, 255])
+
         self.drawArcLabel("Door", [0, 0, 255])
         self.drawLineLabel("Door", [0, 0, 255])
-        self.drawLineLabel("UniformDistWindow", [0, 255, 0])
 
-        self.drawLineLabel("MaybeCabinet", [255, 0, 0])
+        self.drawLineLabel("Cabinet", [255, 255, 0])
+        self.drawLineLabel("CabinetBBox", [255, 255, 0])
+
+        self.drawLineLabel("UniformDistWindow", [0, 255, 0])
         return True
 
 def demo_with_edit_config(config, kv_list):
@@ -620,7 +657,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['3']
+    config = CONFIG_COLLECTION['10']
 
     renderer = DXFRenderer(config)
     renderer.render()
