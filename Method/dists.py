@@ -47,3 +47,21 @@ def getLineDist(line_1, line_2):
     min_dist = min(dist_1, dist_2)
     return min_dist + dist_mid
 
+def getMinDistWithLineIdx(line, line_list):
+    if len(line_list) == 0:
+        print("[ERROR][dists::getMinDistLineIdx]")
+        print("\t line_list is empty!")
+        return None
+
+    if len(line_list) == 1:
+        return 0
+
+    min_dist = float('inf')
+    min_dist_idx = -1
+    for i in range(len(line_list)):
+        current_dist = getLineDist2(line, line_list[i])
+        if current_dist < min_dist:
+            min_dist = current_dist
+            min_dist_idx = i
+    return min_dist, min_dist_idx
+
