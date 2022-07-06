@@ -543,7 +543,9 @@ class DXFLayoutDetector(DXFRenderer):
         self.outputLabel([
             "Valid",
             "Horizontal", "Vertical",
+            "Unit",
             "UnitCrossCluster",
+            "Layout",
             "LayoutCrossCluster",
             "SingleConnect",
         ])
