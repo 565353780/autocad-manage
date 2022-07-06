@@ -543,10 +543,8 @@ class DXFLayoutDetector(DXFRenderer):
         self.outputLabel([
             "Valid",
             "Horizontal", "Vertical",
-            "Unit",
-            "UnitCrossCluster",
-            "Layout",
-            "LayoutCrossCluster",
+            "Unit", "UnitCrossCluster",
+            "Layout", "LayoutCrossCluster",
             "SingleConnect",
         ])
         return True
@@ -566,7 +564,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['9']
+    config = CONFIG_COLLECTION['6']
 
     renderer = DXFRenderer(config)
     renderer.render()
