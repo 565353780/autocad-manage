@@ -657,7 +657,7 @@ def demo_with_edit_config(config, kv_list):
     return True
 
 def demo_debug():
-    config = CONFIG_COLLECTION['10']
+    config = CONFIG_COLLECTION['3']
 
     renderer = DXFRenderer(config)
     renderer.render()

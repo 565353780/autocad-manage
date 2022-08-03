@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-BASE_PATH = "/home/chli/chLi/Download/DeepLearning/Dataset/CAD/"
+BASE_PATH = "/home/chli/chLi/"
 
 DXF_DICT = {
     'test1': BASE_PATH + 'test1.dxf',
