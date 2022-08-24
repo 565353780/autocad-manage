@@ -3,9 +3,9 @@
 
 from math import atan2, pi
 
-from dxf_shape_spliter.Data.shape import Line
+from dxf_data_manage.Data.shape import Line
 
-from dxf_shape_spliter.Method.dists import getPointDist
+from dxf_data_manage.Method.dists import getPointDist
 
 def cross(point_1, point_2, point_3):
     x_1 = point_2.x - point_1.x

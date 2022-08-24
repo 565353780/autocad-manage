@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_shape_spliter.Data.label import Label
-from dxf_shape_spliter.Data.bbox import BBox
+from dxf_data_manage.Data.label import Label
+from dxf_data_manage.Data.bbox import BBox
 
 class Circle(Label):
     def __init__(self, center, radius):

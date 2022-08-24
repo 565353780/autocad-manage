@@ -4,24 +4,24 @@
 import numpy as np
 from cv2 import waitKey
 
-from dxf_shape_spliter.Config.configs import CONFIG_COLLECTION
+from dxf_data_manage.Config.configs import CONFIG_COLLECTION
 
-from dxf_shape_spliter.Data.line import Line
-from dxf_shape_spliter.Data.line_cluster import LineCluster
+from dxf_data_manage.Data.line import Line
+from dxf_data_manage.Data.line_cluster import LineCluster
 
-from dxf_shape_spliter.Method.cross_check import \
+from dxf_data_manage.Method.cross_check import \
     getPointCrossLineListNum, isPointInArcArea, \
     isLineHorizontal, isLineVertical, isLineParallel, \
     isLineListOnSameLines, isLineListCross, isLineCrossArcList
-from dxf_shape_spliter.Method.similar_check import isHaveSameLine
-from dxf_shape_spliter.Method.connect_check import \
+from dxf_data_manage.Method.similar_check import isHaveSameLine
+from dxf_data_manage.Method.connect_check import \
     isLineListConnectInAllLineList, isLineConnectInLineList, isLineListUniform
-from dxf_shape_spliter.Method.cluster import clusterLineByCross, clusterLineBySimilar
-from dxf_shape_spliter.Method.dists import getPointDist2, getPointDist, getLineDist2, getMinDistWithLineIdx
-from dxf_shape_spliter.Method.labels import \
+from dxf_data_manage.Method.cluster import clusterLineByCross, clusterLineBySimilar
+from dxf_data_manage.Method.dists import getPointDist2, getPointDist, getLineDist2, getMinDistWithLineIdx
+from dxf_data_manage.Method.labels import \
     getShapeListWithLabel, getShapeListWithAnyLabelList, getShapeListDictWithLabel
 
-from dxf_shape_spliter.Module.dxf_renderer import DXFRenderer
+from dxf_data_manage.Module.dxf_renderer import DXFRenderer
 
 class DXFLayoutDetector(DXFRenderer):
     def __init__(self, config):

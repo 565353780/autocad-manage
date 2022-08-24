@@ -4,9 +4,9 @@
 import os
 import ezdxf
 
-from dxf_shape_spliter.Config.configs import CONFIG_COLLECTION
+from dxf_data_manage.Config.configs import CONFIG_COLLECTION
 
-from dxf_shape_spliter.Data.shape import Point, Line, Circle, Arc, BBox
+from dxf_data_manage.Data.shape import Point, Line, Circle, Arc, BBox
 
 class DXFLoader(object):
     def __init__(self, config):
