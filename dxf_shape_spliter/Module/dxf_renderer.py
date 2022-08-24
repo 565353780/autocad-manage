@@ -5,13 +5,13 @@ import cv2
 import numpy as np
 from random import randint
 
-from Config.configs import CONFIG_COLLECTION
+from dxf_shape_spliter.Config.configs import CONFIG_COLLECTION
 
-from Data.shape import Point
+from dxf_shape_spliter.Data.shape import Point
 
-from Method.labels import getShapeListDictWithLabel
+from dxf_shape_spliter.Method.labels import getShapeListDictWithLabel
 
-from Module.dxf_loader import DXFLoader
+from dxf_shape_spliter.Module.dxf_loader import DXFLoader
 
 class DXFRenderer(DXFLoader):
     def __init__(self, config):

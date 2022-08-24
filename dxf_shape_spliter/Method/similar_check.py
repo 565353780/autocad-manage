@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from Data.line import Line
+from dxf_shape_spliter.Data.line import Line
 
-from Method.dists import getPointDist2, getLineDist
-from Method.cross_check import isBBoxCross, isLineParallel
+from dxf_shape_spliter.Method.dists import getPointDist2, getLineDist
+from dxf_shape_spliter.Method.cross_check import isBBoxCross, isLineParallel
 
 def getMinConnectLineList(line_1, line_2):
     min_connect_line_list = []

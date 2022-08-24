@@ -3,9 +3,9 @@
 
 from math import sqrt, atan, pi
 
-from Data.label import Label
-from Data.point import Point
-from Data.bbox import BBox
+from dxf_shape_spliter.Data.label import Label
+from dxf_shape_spliter.Data.point import Point
+from dxf_shape_spliter.Data.bbox import BBox
 
 class Line(Label):
     def __init__(self, start_point=Point(), end_point=Point()):

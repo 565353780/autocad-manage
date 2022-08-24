@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from Data.point import Point
+from dxf_shape_spliter.Data.point import Point
 
 class BBox(object):
     def __init__(self, min_point=Point(), max_point=Point()):

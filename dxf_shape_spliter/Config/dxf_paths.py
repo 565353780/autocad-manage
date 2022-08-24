@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-BASE_PATH = "/home/chli/chLi/"
+BASE_PATH = "/home/chli/chLi/CAD/"
 
 DXF_DICT = {
     'test1': BASE_PATH + 'test1.dxf',

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from Data.label import Label
-from Data.bbox import BBox
+from dxf_shape_spliter.Data.label import Label
+from dxf_shape_spliter.Data.bbox import BBox
 
 class Arc(Label):
     def __init__(self, center, radius, start_angle, end_angle, flatten_point_list):
