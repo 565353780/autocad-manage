@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.label import Label
+from dxf_data_manage.Data.base_shape import BaseShape
 from dxf_data_manage.Data.bbox import BBox
 
-class Arc(Label):
+class Arc(BaseShape):
     def __init__(self, center, radius, start_angle, end_angle, flatten_point_list):
         super(Arc, self).__init__()
         self.center = center
@@ -12,6 +12,8 @@ class Arc(Label):
         self.start_angle = start_angle
         self.end_angle = end_angle
         self.flatten_point_list = flatten_point_list
+
+        self.type = "ARC"
 
         self.bbox = BBox()
         self.update()

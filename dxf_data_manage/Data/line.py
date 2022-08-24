@@ -3,15 +3,17 @@
 
 from math import sqrt, atan, pi
 
-from dxf_data_manage.Data.label import Label
+from dxf_data_manage.Data.base_shape import BaseShape
 from dxf_data_manage.Data.point import Point
 from dxf_data_manage.Data.bbox import BBox
 
-class Line(Label):
+class Line(BaseShape):
     def __init__(self, start_point=Point(), end_point=Point()):
         super(Line, self).__init__()
         self.start_point = start_point
         self.end_point = end_point
+
+        self.type = "LINE"
 
         self.diff_point = None
         self.bbox = BBox()

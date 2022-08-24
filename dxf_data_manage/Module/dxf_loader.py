@@ -7,7 +7,7 @@ import ezdxf
 
 from dxf_data_manage.Config.configs import CONFIG_COLLECTION
 
-from dxf_data_manage.Data.shape import Point, Line, Circle, Arc, BBox
+from dxf_data_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
 
 from dxf_data_manage.Method.path import createFileFolder
 
@@ -24,6 +24,7 @@ class DXFLoader(object):
 
         self.msp = None
         self.layout_names = []
+        self.base_shape_list = []
         self.line_list = []
         self.circle_list = []
         self.arc_list = []
@@ -41,6 +42,13 @@ class DXFLoader(object):
         self.circle_list = []
         self.bbox = BBox()
         self.undefined_entity_type_list = []
+        return True
+
+    def loadBaseShapeEntity(self, entity):
+        new_base_shape = BaseShape()
+        new_base_shape.type = entity.dxftype()
+        new_base_shape.setAttribsDict(entity.dxfattribs())
+        self.base_shape_list.append(new_base_shape)
         return True
 
     def loadLineEntity(self, entity):
@@ -143,12 +151,14 @@ class DXFLoader(object):
                 if not self.loadEntity(virtual_entity, depth + 1):
                     return False
 
+        self.loadBaseShapeEntity(entity)
+
         if dxftype in self.undefined_entity_type_list:
             return True
 
         self.undefined_entity_type_list.append(dxftype)
         print("[WARN][DXFLoader::loadEntity]")
-        print("\t load algo for [" + dxftype + "] not defined!")
+        print("\t load algo for [" + dxftype + "] not defined! will load as BaseShape!")
         return True
 
     def loadAllEntity(self):
@@ -205,21 +215,34 @@ class DXFLoader(object):
         createFileFolder(save_json_file_path)
 
         json_dict = {}
-        json_dict["LINE"] = {}
-        json_dict["CIRCLE"] = {}
-        json_dict["ARC"] = {}
-        for i, line in enumerate(self.line_list):
-            json_dict["LINE"][str(i)] = {}
-            for key, item in line.attribs_dict.items():
-                json_dict["LINE"][str(i)][key] = str(item)
-        for i, circle in enumerate(self.circle_list):
-            json_dict["CIRCLE"][str(i)] = {}
-            for key, item in circle.attribs_dict.items():
-                json_dict["CIRCLE"][str(i)][key] = str(item)
-        for i, arc in enumerate(self.arc_list):
-            json_dict["ARC"][str(i)] = {}
-            for key, item in arc.attribs_dict.items():
-                json_dict["ARC"][str(i)][key] = str(item)
+
+        for shape in self.line_list:
+            shape_type = shape.type
+            if shape_type not in json_dict.keys():
+                json_dict[shape_type] = {}
+            shape_idx = len(json_dict[shape_type].keys())
+            json_dict[shape_type][str(shape_idx)] = shape.getJson()
+
+        for shape in self.circle_list:
+            shape_type = shape.type
+            if shape_type not in json_dict.keys():
+                json_dict[shape_type] = {}
+            shape_idx = len(json_dict[shape_type].keys())
+            json_dict[shape_type][str(shape_idx)] = shape.getJson()
+
+        for shape in self.arc_list:
+            shape_type = shape.type
+            if shape_type not in json_dict.keys():
+                json_dict[shape_type] = {}
+            shape_idx = len(json_dict[shape_type].keys())
+            json_dict[shape_type][str(shape_idx)] = shape.getJson()
+
+        for shape in self.base_shape_list:
+            shape_type = shape.type
+            if shape_type not in json_dict.keys():
+                json_dict[shape_type] = {}
+            shape_idx = len(json_dict[shape_type].keys())
+            json_dict[shape_type][str(shape_idx)] = shape.getJson()
 
         json_str = json.dumps(json_dict, ensure_ascii=False, indent=4)
 

@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.label import Label
+from dxf_data_manage.Data.base_shape import BaseShape
 
-class Point(Label):
+class Point(BaseShape):
     def __init__(self, x=0, y=0, z=0):
         super(Point, self).__init__()
         self.x = x
         self.y = y
         self.z = z
+
+        self.type = "POINT"
         return
 
     def isZero(self):

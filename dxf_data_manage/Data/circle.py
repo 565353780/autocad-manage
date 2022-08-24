@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.label import Label
+from dxf_data_manage.Data.base_shape import BaseShape
 from dxf_data_manage.Data.bbox import BBox
 
-class Circle(Label):
+class Circle(BaseShape):
     def __init__(self, center, radius):
         super(Circle, self).__init__()
         self.center = center
         self.radius = radius
+
+        self.type = "CIRCLE"
 
         self.bbox = BBox()
         self.update()
