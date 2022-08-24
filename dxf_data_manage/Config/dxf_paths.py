@@ -17,5 +17,5 @@ DXF_DICT = {
     '10': BASE_PATH + '给坤哥测试用例/户型图10.dxf',
 }
 
-VALID_KEY_LIST = ["test1", "3", "4", "5", "6", "9", "10"]
+VALID_KEY_LIST = ["3", "4", "5", "6", "9", "10"]
 

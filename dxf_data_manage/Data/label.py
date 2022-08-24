@@ -4,10 +4,15 @@
 class Label(object):
     def __init__(self):
         self.label_dict = {}
+        self.attribs_dict = {}
         return
 
     def setLabel(self, key, value=True):
         self.label_dict[key] = value
+        return True
+
+    def setAttribsDict(self, attribs_dict):
+        self.attribs_dict = attribs_dict
         return True
 
     def getLabel(self, key):

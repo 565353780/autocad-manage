@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 import ezdxf
 
 from dxf_data_manage.Config.configs import CONFIG_COLLECTION
 
 from dxf_data_manage.Data.shape import Point, Line, Circle, Arc, BBox
+
+from dxf_data_manage.Method.path import createFileFolder
 
 class DXFLoader(object):
     def __init__(self, config):
@@ -60,6 +63,7 @@ class DXFLoader(object):
         end_point.z = 0
 
         new_line = Line(start_point, end_point)
+        new_line.setAttribsDict(entity.dxfattribs())
         self.line_list.append(new_line)
         return True
 
@@ -75,6 +79,7 @@ class DXFLoader(object):
         center = dxf.center
         radius = dxf.radius
         new_circle = Circle(Point(center[0], center[1], center[2]), radius)
+        new_circle.setAttribsDict(entity.dxfattribs())
         self.circle_list.append(new_circle)
         return True
 
@@ -102,6 +107,7 @@ class DXFLoader(object):
 
         new_arc = Arc(Point(center[0], center[1], center[2]), radius,
                       start_angle, end_angle, flatten_point_list)
+        new_arc.setAttribsDict(entity.dxfattribs())
         self.arc_list.append(new_arc)
         return True
 
@@ -193,6 +199,32 @@ class DXFLoader(object):
             print("[ERROR][DXFLoader::loadFile]")
             print("\t updateBBox failed!")
             return False
+        return True
+
+    def saveJson(self, save_json_file_path):
+        createFileFolder(save_json_file_path)
+
+        json_dict = {}
+        json_dict["LINE"] = {}
+        json_dict["CIRCLE"] = {}
+        json_dict["ARC"] = {}
+        for i, line in enumerate(self.line_list):
+            json_dict["LINE"][str(i)] = {}
+            for key, item in line.attribs_dict.items():
+                json_dict["LINE"][str(i)][key] = str(item)
+        for i, circle in enumerate(self.circle_list):
+            json_dict["CIRCLE"][str(i)] = {}
+            for key, item in circle.attribs_dict.items():
+                json_dict["CIRCLE"][str(i)][key] = str(item)
+        for i, arc in enumerate(self.arc_list):
+            json_dict["ARC"][str(i)] = {}
+            for key, item in arc.attribs_dict.items():
+                json_dict["ARC"][str(i)][key] = str(item)
+
+        json_str = json.dumps(json_dict, ensure_ascii=False, indent=4)
+
+        with open(save_json_file_path, "w", encoding="utf-8") as f:
+            f.write(json_str)
         return True
 
     def print_entity(self, entity, debug=False):
@@ -312,9 +344,11 @@ class DXFLoader(object):
 
 def demo():
     config = CONFIG_COLLECTION['render_all']
+    save_json_file_path = "/home/chli/chLi/CAD/给坤哥测试用例/户型图3.json"
 
     dxf_loader = DXFLoader(config)
     dxf_loader.outputInfo()
+    dxf_loader.saveJson(save_json_file_path)
     return True
 
 if __name__ == "__main__":
