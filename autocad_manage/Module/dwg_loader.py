@@ -20,6 +20,12 @@ class DWGLoader(object):
         self.doc = None
         return True
 
+    def resetAutoCAD(self):
+        if self.autocad is None:
+            return True
+        self.sendCMD("FILEDIA 1")
+        return True
+
     def connectAutoCAD(self):
         self.reset()
 
@@ -30,6 +36,7 @@ class DWGLoader(object):
             print("\t GetActiveObject failed! please start AutoCAD first!")
             return False
 
+        self.sendCMD("FILEDIA 0")
         self.autocad.Visible = True
         return True
 
