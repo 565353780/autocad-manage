@@ -66,8 +66,8 @@ def demo():
     return True
 
 def demo_folder():
-    dwg_folder_path = "/home/chli/chLi/CAD/"
-    save_file_path = "/home/chli/chLi/CAD/DXF/"
+    dwg_folder_path = "L:/CAD/"
+    save_file_path = "L:/CAD/DXF/"
 
     dwg_loader = DWGLoader()
     for root, _, files in os.walk(dwg_folder_path):
