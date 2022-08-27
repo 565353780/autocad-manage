@@ -10,8 +10,8 @@ from autocad_manage.Module.dxf_layout_detector import \
     demo_debug as layout_detect_debug_demo
 
 if __name__ == "__main__":
-    #  dwg_load_demo()
-    dwg_load_folder_demo()
+    dwg_load_demo()
+    #  dwg_load_folder_demo()
     #  dxf_load_demo()
     #  layout_detect_demo()
     #  layout_detect_debug_demo()

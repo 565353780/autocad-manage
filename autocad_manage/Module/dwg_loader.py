@@ -64,8 +64,10 @@ class DWGLoader(object):
         return True
 
 def demo():
-    dwg_file_path = "L:/"
-    save_file_path = "L:/"
+    dwg_file_path = \
+        "L:/CAD/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dwg"
+    save_file_path = \
+        "L:/CAD/DXF/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dwg"
     dwg_loader = DWGLoader()
     dwg_loader.openDWGFile(dwg_file_path)
     dwg_loader.saveAs(save_file_path)
@@ -82,9 +84,6 @@ def demo_folder():
                 continue
             dwg_file_path = root + "/" + file_name
             save_file_path = dwg_file_path.replace(dwg_folder_path, save_folder_path)
-            print(dwg_file_path)
-            print(save_file_path)
-            continue
             dwg_loader.openDWGFile(dwg_file_path)
             dwg_loader.saveAs(save_file_path)
     return True
