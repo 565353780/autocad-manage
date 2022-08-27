@@ -33,6 +33,11 @@ class DWGLoader(object):
         self.autocad.Visible = True
         return True
 
+    def sendCMD(self, cmd):
+        doc = self.autocad.activedocument
+        doc.SendCommand(cmd)
+        return True
+
     def openDWGFile(self, dwg_file_path):
         if not os.path.exists(dwg_file_path):
             print("[ERROR][DWGLoader::openDWGFile]")
@@ -55,6 +60,7 @@ class DWGLoader(object):
 
     def saveAs(self, save_file_path):
         createFileFolder(save_file_path)
+        self.autocad.Documents.SaveAs(save_file_path)
         return True
 
 def demo():
