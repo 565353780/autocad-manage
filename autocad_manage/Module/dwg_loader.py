@@ -67,7 +67,7 @@ def demo():
 
 def demo_folder():
     dwg_folder_path = "L:/CAD/"
-    save_file_path = "L:/CAD/DXF/"
+    save_folder_path = "L:/CAD/DXF/"
 
     dwg_loader = DWGLoader()
     for root, _, files in os.walk(dwg_folder_path):
@@ -75,7 +75,9 @@ def demo_folder():
             if file_name[-4:] != ".dwg":
                 continue
             dwg_file_path = root + "/" + file_name
+            save_file_path = dwg_file_path.replace(dwg_folder_path, save_folder_path)
             print(dwg_file_path)
+            print(save_file_path)
             continue
             dwg_loader.openDWGFile(dwg_file_path)
             dwg_loader.saveAs(save_file_path)
