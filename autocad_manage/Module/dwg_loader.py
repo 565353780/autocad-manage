@@ -18,7 +18,7 @@ class DWGLoader(object):
             self.autocad = comtypes.client.GetActiveObject("AutoCAD.Application")
         except:
             print("[ERROR][DWGLoader::connectAutoCAD]")
-            print("\t GetActiveObject failed!")
+            print("\t GetActiveObject failed! please start AutoCAD first!")
             return False
 
         self.autocad.Visible = True
@@ -29,7 +29,8 @@ class DWGLoader(object):
             self.doc = self.autocad.Documents.Open(dwg_file_path)
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
-            print("\t Open failed!")
+            print("\t Open failed! please check if file exist!")
+            print("\t", dwg_file_path)
             return False
         return True
 
