@@ -3,8 +3,8 @@
 
 from copy import deepcopy
 
-from dxf_data_manage.Config.base_config import BASE_CONFIG
-from dxf_data_manage.Config.dxf_paths import DXF_DICT, VALID_KEY_LIST
+from autocad_manage.Config.base_config import BASE_CONFIG
+from autocad_manage.Config.dxf_paths import DXF_DICT, VALID_KEY_LIST
 
 RENDER_ALL = deepcopy(BASE_CONFIG)
 RENDER_ALL['dxf_file_path'] = DXF_DICT[VALID_KEY_LIST[0]]

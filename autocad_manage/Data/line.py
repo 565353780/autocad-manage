@@ -3,9 +3,9 @@
 
 from math import sqrt, atan, pi
 
-from dxf_data_manage.Data.base_shape import BaseShape
-from dxf_data_manage.Data.point import Point
-from dxf_data_manage.Data.bbox import BBox
+from autocad_manage.Data.base_shape import BaseShape
+from autocad_manage.Data.point import Point
+from autocad_manage.Data.bbox import BBox
 
 class Line(BaseShape):
     def __init__(self, start_point=Point(), end_point=Point()):

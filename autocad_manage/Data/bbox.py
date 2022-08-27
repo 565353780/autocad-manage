@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.point import Point
+from autocad_manage.Data.point import Point
 
 class BBox(object):
     def __init__(self, min_point=Point(), max_point=Point()):

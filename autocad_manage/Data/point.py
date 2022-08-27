@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.base_shape import BaseShape
+from autocad_manage.Data.base_shape import BaseShape
 
 class Point(BaseShape):
     def __init__(self, x=0, y=0, z=0):

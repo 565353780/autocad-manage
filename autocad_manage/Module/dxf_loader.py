@@ -5,11 +5,11 @@ import os
 import json
 import ezdxf
 
-from dxf_data_manage.Config.configs import CONFIG_COLLECTION
+from autocad_manage.Config.configs import CONFIG_COLLECTION
 
-from dxf_data_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
+from autocad_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
 
-from dxf_data_manage.Method.path import createFileFolder
+from autocad_manage.Method.path import createFileFolder
 
 class DXFLoader(object):
     def __init__(self, config):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.label import Label
+from autocad_manage.Data.label import Label
 
 class BaseShape(Label):
     def __init__(self):

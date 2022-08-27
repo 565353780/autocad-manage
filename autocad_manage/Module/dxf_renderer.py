@@ -5,13 +5,13 @@ import cv2
 import numpy as np
 from random import randint
 
-from dxf_data_manage.Config.configs import CONFIG_COLLECTION
+from autocad_manage.Config.configs import CONFIG_COLLECTION
 
-from dxf_data_manage.Data.shape import Point
+from autocad_manage.Data.shape import Point
 
-from dxf_data_manage.Method.labels import getShapeListDictWithLabel
+from autocad_manage.Method.labels import getShapeListDictWithLabel
 
-from dxf_data_manage.Module.dxf_loader import DXFLoader
+from autocad_manage.Module.dxf_loader import DXFLoader
 
 class DXFRenderer(DXFLoader):
     def __init__(self, config):

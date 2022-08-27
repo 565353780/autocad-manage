@@ -3,11 +3,11 @@
 
 import numpy as np
 
-from dxf_data_manage.Data.point import Point
+from autocad_manage.Data.point import Point
 
-from dxf_data_manage.Method.dists import getLineDist
-from dxf_data_manage.Method.cross_check import isPointCrossLineList
-from dxf_data_manage.Method.similar_check import getMinConnectLineList
+from autocad_manage.Method.dists import getLineDist
+from autocad_manage.Method.cross_check import isPointCrossLineList
+from autocad_manage.Method.similar_check import getMinConnectLineList
 
 def getMaxDistLineIdxPair(line_list):
     max_dist_line_idx_pair = [-1, -1]

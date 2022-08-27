@@ -4,8 +4,8 @@
 from functools import cmp_to_key
 from tqdm import tqdm
 
-from dxf_data_manage.Method.cross_check import isLineListCross
-from dxf_data_manage.Method.similar_check import isLineListSimilar
+from autocad_manage.Method.cross_check import isLineListCross
+from autocad_manage.Method.similar_check import isLineListSimilar
 
 def getMergeElementList(list_list, list_idx_list):
     list_list_len = len(list_list)

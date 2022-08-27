@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.line import Line
+from autocad_manage.Data.line import Line
 
-from dxf_data_manage.Method.dists import getPointDist2, getLineDist
-from dxf_data_manage.Method.cross_check import isBBoxCross, isLineParallel
+from autocad_manage.Method.dists import getPointDist2, getLineDist
+from autocad_manage.Method.cross_check import isBBoxCross, isLineParallel
 
 def getMinConnectLineList(line_1, line_2):
     min_connect_line_list = []

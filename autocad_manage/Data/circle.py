@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from dxf_data_manage.Data.base_shape import BaseShape
-from dxf_data_manage.Data.bbox import BBox
+from autocad_manage.Data.base_shape import BaseShape
+from autocad_manage.Data.bbox import BBox
 
 class Circle(BaseShape):
     def __init__(self, center, radius):
