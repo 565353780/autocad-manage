@@ -70,7 +70,7 @@ def demo():
         "L:/CAD/DXF/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dwg"
     dwg_loader = DWGLoader()
     dwg_loader.openDWGFile(dwg_file_path)
-    dwg_loader.sendCMD("SAVEAS")
+    dwg_loader.sendCMD("SAVEAS " + save_file_path)
     dwg_loader.saveAs(save_file_path)
     return True
 
