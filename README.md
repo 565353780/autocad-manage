@@ -3,7 +3,7 @@
 ## Install
 
 ```bash
-pip3 install ezdxf opencv-python
+pip install ezdxf opencv-python
 ```
 
 ## Run
