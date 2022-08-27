@@ -1,19 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  import win32com.client
+import os
 import comtypes.client
+#  import win32com.client
+
+from autocad_manage.Method.path import createFileFolder
 
 class DWGLoader(object):
     def __init__(self):
         self.autocad = None
-
         self.doc = None
 
         self.connectAutoCAD()
         return
 
+    def reset(self):
+        self.autocad = None
+        self.doc = None
+        return True
+
     def connectAutoCAD(self):
+        self.reset()
+
         try:
             self.autocad = comtypes.client.GetActiveObject("AutoCAD.Application")
         except:
@@ -25,6 +34,16 @@ class DWGLoader(object):
         return True
 
     def openDWGFile(self, dwg_file_path):
+        if not os.path.exists(dwg_file_path):
+            print("[ERROR][DWGLoader::openDWGFile]")
+            print("\t dwg_file not exist!")
+            return False
+
+        if self.autocad is None:
+            print("[ERROR][DWGLoader::openDWGFile]")
+            print("\t autocad not connected!")
+            return False
+
         try:
             self.doc = self.autocad.Documents.Open(dwg_file_path)
         except:
@@ -35,6 +54,7 @@ class DWGLoader(object):
         return True
 
     def saveAs(self, save_file_path):
+        createFileFolder(save_file_path)
         return True
 
 def demo():
@@ -46,10 +66,18 @@ def demo():
     return True
 
 def demo_folder():
-    dwg_file_path = "L:/"
-    save_file_path = "L:/"
+    dwg_folder_path = "/home/chli/chLi/CAD/"
+    save_file_path = "/home/chli/chLi/CAD/DXF/"
+
     dwg_loader = DWGLoader()
-    dwg_loader.openDWGFile(dwg_file_path)
-    dwg_loader.saveAs(save_file_path)
+    for root, _, files in os.walk(dwg_folder_path):
+        for file_name in files:
+            if file_name[-4:] != ".dwg":
+                continue
+            dwg_file_path = root + "/" + file_name
+            print(dwg_file_path)
+            continue
+            dwg_loader.openDWGFile(dwg_file_path)
+            dwg_loader.saveAs(save_file_path)
     return True
 
