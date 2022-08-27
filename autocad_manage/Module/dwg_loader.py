@@ -20,12 +20,6 @@ class DWGLoader(object):
         self.doc = None
         return True
 
-    def resetAutoCAD(self):
-        if self.autocad is None:
-            return True
-        self.sendCMD("FILEDIA 1")
-        return True
-
     def connectAutoCAD(self):
         self.reset()
 
@@ -36,7 +30,6 @@ class DWGLoader(object):
             print("\t GetActiveObject failed! please start AutoCAD first!")
             return False
 
-        self.sendCMD("FILEDIA 0")
         self.autocad.Visible = True
         return True
 
@@ -63,21 +56,25 @@ class DWGLoader(object):
             print("\t Open failed! please check if file exist!")
             print("\t", dwg_file_path)
             return False
+
+        cmd = "FILEDIA " + "0 "
+        self.sendCMD(cmd)
         return True
 
     def saveAs(self, save_file_path):
         createFileFolder(save_file_path)
-        self.autocad.Documents.SaveAs(save_file_path)
+
+        cmd = "SAVEAS " + "dxf " + "16 " + save_file_path + " "
+        self.sendCMD(cmd)
         return True
 
 def demo():
     dwg_file_path = \
         "L:/CAD/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dwg"
     save_file_path = \
-        "L:/CAD/DXF/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dwg"
+        "L:/CAD/DXF/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dxf"
     dwg_loader = DWGLoader()
     dwg_loader.openDWGFile(dwg_file_path)
-    dwg_loader.sendCMD("SAVEAS " + save_file_path)
     dwg_loader.saveAs(save_file_path)
     return True
 
@@ -91,7 +88,9 @@ def demo_folder():
             if file_name[-4:] != ".dwg":
                 continue
             dwg_file_path = root + "/" + file_name
-            save_file_path = dwg_file_path.replace(dwg_folder_path, save_folder_path)
+            save_file_path = \
+                root.replace(dwg_folder_path, save_folder_path) + "/" + \
+                file_name[:-4] + ".dxf"
             dwg_loader.openDWGFile(dwg_file_path)
             dwg_loader.saveAs(save_file_path)
     return True
