@@ -34,9 +34,22 @@ class DWGLoader(object):
             return False
         return True
 
+    def saveAs(self, save_file_path):
+        return True
+
 def demo():
     dwg_file_path = "L:/"
+    save_file_path = "L:/"
     dwg_loader = DWGLoader()
     dwg_loader.openDWGFile(dwg_file_path)
+    dwg_loader.saveAs(save_file_path)
+    return True
+
+def demo_folder():
+    dwg_file_path = "L:/"
+    save_file_path = "L:/"
+    dwg_loader = DWGLoader()
+    dwg_loader.openDWGFile(dwg_file_path)
+    dwg_loader.saveAs(save_file_path)
     return True
 
