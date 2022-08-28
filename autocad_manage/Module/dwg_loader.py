@@ -6,7 +6,9 @@ import comtypes.client
 #  import win32com.client
 from tqdm import tqdm
 
-from autocad_manage.Method.path import createFileFolder
+from autocad_manage.Config.tmp_path import TMP_PATH
+
+from autocad_manage.Method.path import createFileFolder, removeIfExist
 
 class DWGLoader(object):
     def __init__(self):
@@ -81,19 +83,39 @@ class DWGLoader(object):
     def saveAs(self, save_file_path):
         createFileFolder(save_file_path)
 
-        cmd = "SAVEAS " + "dxf " + "16 " + save_file_path + "\n"
-        if not self.sendCMD(cmd):
+        cmd = "SAVEAS "
+
+        if save_file_path[-4:] == ".dxf":
+            cmd += "dxf " + "16 " + save_file_path + "\n"
+        elif save_file_path[-4:] == ".dwg":
+            cmd += "2018 " + save_file_path + "\n"
+        else:
             print("[ERROR][DWGLoader::saveAs]")
-            print("\t sendCMD failed!")
+            print("\t save_file format not valid!")
             return False
+
+        while not self.sendCMD(cmd):
+            print("[WARN][DWGLoader::saveAs]")
+            print("\t sendCMD failed! start retry ...")
+            print("\t", cmd)
         return True
 
     def closeDoc(self):
-        cmd = "CLOSE "
-        if not self.sendCMD(cmd):
+        tmp_file_path = TMP_PATH + "tmp.dwg"
+        removeIfExist(tmp_file_path)
+
+        if not self.saveAs(tmp_file_path):
             print("[ERROR][DWGLoader::closeDoc]")
-            print("\t sendCMD failed!")
+            print("\t saveAs dwg failed!")
             return False
+
+        cmd = "CLOSE "
+        while not self.sendCMD(cmd):
+            print("[WARN][DWGLoader::closeDoc]")
+            print("\t sendCMD failed! start retry ...")
+            print("\t", cmd)
+
+        removeIfExist(tmp_file_path)
         return True
 
 def demo():
