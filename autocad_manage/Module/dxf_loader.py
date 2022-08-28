@@ -10,7 +10,7 @@ from autocad_manage.Config.configs import BASE_CONFIG, CONFIG_COLLECTION
 
 from autocad_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
 
-from autocad_manage.Method.path import createFileFolder
+from autocad_manage.Method.path import createFileFolder, renameFile
 
 class DXFLoader(object):
     def __init__(self, config=None):
@@ -252,6 +252,54 @@ class DXFLoader(object):
             f.write(json_str)
         return True
 
+    def saveFolderJson(self, dxf_folder_path, save_folder_path, print_progress=False):
+        file_path_pair_list = []
+        for root, _, files in os.walk(dxf_folder_path):
+            for file_name in files:
+                if file_name[-4:] != ".dxf":
+                    continue
+                dxf_file_path = root + file_name
+                save_file_path = \
+                    root.replace(dxf_folder_path, save_folder_path) + \
+                    file_name[:-4] + ".json"
+                file_path_pair_list.append([dxf_file_path, save_file_path])
+
+        for_data = file_path_pair_list
+        if print_progress:
+            print("[INFO][DXFLoader::saveFolderJson]")
+            print("\t start trans dxf to json...")
+            for_data = tqdm(file_path_pair_list)
+        for file_path_pair in for_data:
+            dxf_file_path, save_file_path = file_path_pair
+
+            if os.path.exists(save_file_path):
+                continue
+
+            tmp_file_path = save_file_path[:-4] + "_tmp.json"
+
+            if not self.loadFile(dxf_file_path):
+                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("\t loadFile failed!")
+                print("\t", dxf_file_path)
+                return False
+
+            if not self.saveJson(tmp_file_path):
+                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("\t saveJson failed!")
+                print("\t", tmp_file_path)
+                return False
+
+            if not os.path.exists(tmp_file_path):
+                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("\t trans dxf to json failed!")
+                return False
+
+            if not renameFile(tmp_file_path, save_file_path):
+                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("\t renameFile failed!")
+                return False
+        return True
+
     def print_entity(self, entity, debug=False):
         if not debug:
             print()
@@ -381,40 +429,6 @@ def demo_folder():
     save_folder_path = "L:/CAD/JSON/户型识别文件/"
 
     dxf_loader = DXFLoader()
-
-    file_path_pair_list = []
-    for root, _, files in os.walk(dxf_folder_path):
-        for file_name in files:
-            if file_name[-4:] != ".dxf":
-                continue
-            dxf_file_path = root + file_name
-            save_file_path = \
-                root.replace(dxf_folder_path, save_folder_path) + \
-                file_name[:-4] + ".json"
-            file_path_pair_list.append([dxf_file_path, save_file_path])
-
-    print("[INFO][DXFLoader::demo_folder]")
-    print("\t start trans dxf to json...")
-    for file_path_pair in tqdm(file_path_pair_list):
-        dxf_file_path, save_file_path = file_path_pair
-
-        if os.path.exists(save_file_path):
-            continue
-
-        tmp_file_path = save_file_path[:-4] + "_tmp.json"
-
-        dxf_loader.loadFile(dxf_file_path)
-        dxf_loader.saveJson(tmp_file_path)
-
-        if not os.path.exists(tmp_file_path):
-            print("[ERROR][DXFLoader::demo_folder]")
-            print("\t trans dxf to json failed!")
-            return False
-
-        while os.path.exists(tmp_file_path):
-            try:
-                os.rename(tmp_file_path, save_file_path)
-            except:
-                continue
+    dxf_loader.saveFolderJson(dxf_folder_path, save_folder_path, True)
     return True
 
