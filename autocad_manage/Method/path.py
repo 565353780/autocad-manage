@@ -11,3 +11,11 @@ def createFileFolder(file_path):
     os.makedirs(file_folder_path)
     return True
 
+def removeIfExist(file_path):
+    while os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except:
+            continue
+    return True
+
