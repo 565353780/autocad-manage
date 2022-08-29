@@ -264,7 +264,7 @@ class DXFLoader(object):
 
         tmp_file_path = save_file_path[:-5] + "_tmp.json"
 
-        if not self.saveJson(save_file_path):
+        if not self.saveJson(tmp_file_path):
             print("[ERROR][DXFLoader::transDxfToJson]")
             print("\t saveJson failed!")
             print("\t", tmp_file_path)
