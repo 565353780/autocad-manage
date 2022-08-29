@@ -1,5 +1,13 @@
 # AutoCAD Manage
 
+## Clone
+
+```bash
+git clone https://github.com/565353780/autocad-manage.git
+git clone https://github.com/565353780/method-manage.git
+cd autocad-manage
+```
+
 ## Install
 
 ```bash
@@ -12,14 +20,34 @@ extra cmd for win
 pip install pypiwin32 comtypes
 ```
 
-## Run
+## Run Server
 
-### start AutoCAD client
+start AutoCAD application
 
-### run server
+run autocad server on Windows
 
 ```bash
-python demo.py
+python win_server.py
+```
+
+run flask server
+
+```bash
+python flask_server.py
+```
+
+## Run Client
+
+```bash
+python client.py
+```
+
+## Usage
+
+look at
+
+```bash
+demo.py
 ```
 
 ## Enjoy it~
