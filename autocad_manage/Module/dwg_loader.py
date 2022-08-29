@@ -135,13 +135,37 @@ class DWGLoader(object):
         return True
 
     def transDwgToDxf(self, dwg_file_path, save_file_path):
+        tmp_file_path = save_file_path[:-4] + "_tmp.dxf"
+
         if not self.openDWGFile(dwg_file_path):
             print("[ERROR][DWGLoader::transDwgToDxf]")
             print("\t openDWGFile failed!")
+            print("\t", dwg_file_path)
             return False
-        if not self.saveAs(save_file_path):
+
+        if not self.saveAs(tmp_file_path):
             print("[ERROR][DWGLoader::transDwgToDxf]")
             print("\t saveAs failed!")
+            print("\t", tmp_file_path)
+            return False
+
+        if not self.closeDoc():
+            print("[ERROR][DWGLoader::transDwgToDxf]")
+            print("\t closeDoc failed!")
+            print("\t", dwg_file_path)
+            return False
+
+        if not os.path.exists(tmp_file_path):
+            print("[ERROR][DWGLoader::transDwgToDxf]")
+            print("\t save dxf file failed!")
+            return False
+
+        if not renameFile(tmp_file_path, save_file_path):
+            print("[ERROR][DWGLoader::transDwgToDxf]")
+            print("\t renameFile failed!")
+            print("\t", tmp_file_path)
+            print("\t ->")
+            print("\t", save_file_path)
             return False
         return True
 
