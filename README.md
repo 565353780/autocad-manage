@@ -14,6 +14,10 @@ pip install pypiwin32 comtypes
 
 ## Run
 
+### start AutoCAD client
+
+### run server
+
 ```bash
 python demo.py
 ```
