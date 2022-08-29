@@ -252,7 +252,37 @@ class DXFLoader(object):
             f.write(json_str)
         return True
 
-    def saveFolderJson(self, dxf_folder_path, save_folder_path, print_progress=False):
+    def transDxfToJson(self, dxf_file_path, save_file_path):
+        if not self.loadFile(dxf_file_path):
+            print("[ERROR][DXFLoader::transDxfToJson]")
+            print("\t loadFile failed!")
+            print("\t", dxf_file_path)
+            return False
+
+        tmp_file_path = save_file_path[:-5] + "_tmp.json"
+
+        if not self.saveJson(save_file_path):
+            print("[ERROR][DXFLoader::transDxfToJson]")
+            print("\t saveJson failed!")
+            print("\t", tmp_file_path)
+            return False
+
+        if not os.path.exists(tmp_file_path):
+            print("[ERROR][DXFLoader::transDxfToJson]")
+            print("\t trans dxf to json failed!")
+            print("\t", dxf_file_path)
+            return False
+
+        if not renameFile(tmp_file_path, save_file_path):
+            print("[ERROR][DXFLoader::transDxfToJson]")
+            print("\t renameFile failed!")
+            print("\t", tmp_file_path)
+            print("\t ->")
+            print("\t", save_file_path)
+            return False
+        return True
+
+    def transDxfFolderToJson(self, dxf_folder_path, save_folder_path, print_progress=False):
         file_path_pair_list = []
         for root, _, files in os.walk(dxf_folder_path):
             for file_name in files:
@@ -266,7 +296,7 @@ class DXFLoader(object):
 
         for_data = file_path_pair_list
         if print_progress:
-            print("[INFO][DXFLoader::saveFolderJson]")
+            print("[INFO][DXFLoader::transDxfFolderToJson]")
             print("\t start trans dxf to json...")
             for_data = tqdm(file_path_pair_list)
         for file_path_pair in for_data:
@@ -275,27 +305,27 @@ class DXFLoader(object):
             if os.path.exists(save_file_path):
                 continue
 
-            tmp_file_path = save_file_path[:-4] + "_tmp.json"
+            tmp_file_path = save_file_path[:-5] + "_tmp.json"
 
             if not self.loadFile(dxf_file_path):
-                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("[ERROR][DXFLoader::transDxfFolderToJson]")
                 print("\t loadFile failed!")
                 print("\t", dxf_file_path)
                 return False
 
             if not self.saveJson(tmp_file_path):
-                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("[ERROR][DXFLoader::transDxfFolderToJson]")
                 print("\t saveJson failed!")
                 print("\t", tmp_file_path)
                 return False
 
             if not os.path.exists(tmp_file_path):
-                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("[ERROR][DXFLoader::transDxfFolderToJson]")
                 print("\t trans dxf to json failed!")
                 return False
 
             if not renameFile(tmp_file_path, save_file_path):
-                print("[ERROR][DXFLoader::saveFolderJson]")
+                print("[ERROR][DXFLoader::transDxfFolderToJson]")
                 print("\t renameFile failed!")
                 return False
         return True
@@ -429,6 +459,6 @@ def demo_folder():
     save_folder_path = "L:/CAD/JSON/户型识别文件/"
 
     dxf_loader = DXFLoader()
-    dxf_loader.saveFolderJson(dxf_folder_path, save_folder_path, True)
+    dxf_loader.transDxfFolderToJson(dxf_folder_path, save_folder_path, True)
     return True
 

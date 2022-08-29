@@ -131,7 +131,18 @@ class DWGLoader(object):
         removeIfExist(tmp_file_path)
         return True
 
-    def saveFolderAs(self, dwg_folder_path, save_folder_path, print_progress=False):
+    def transDwgToDxf(self, dwg_file_path, save_file_path):
+        if not self.openDWGFile(dwg_file_path):
+            print("[ERROR][DWGLoader::transDwgToDxf]")
+            print("\t openDWGFile failed!")
+            return False
+        if not self.saveAs(save_file_path):
+            print("[ERROR][DWGLoader::transDwgToDxf]")
+            print("\t saveAs failed!")
+            return False
+        return True
+
+    def transDwgFolderToDxf(self, dwg_folder_path, save_folder_path, print_progress=False):
         file_path_pair_list = []
         for root, _, files in os.walk(dwg_folder_path):
             for file_name in files:
@@ -145,7 +156,7 @@ class DWGLoader(object):
 
         for_data = file_path_pair_list
         if print_progress:
-            print("[INFO][DWGLoader::saveFolderAs]")
+            print("[INFO][DWGLoader::transDwgFolderToDxf]")
             print("\t start save as dxf files...")
             for_data = tqdm(for_data)
         for file_path_pair in for_data:
@@ -157,30 +168,30 @@ class DWGLoader(object):
             tmp_file_path = save_file_path[:-4] + "_tmp.dxf"
 
             if not self.openDWGFile(dwg_file_path):
-                print("[ERROR][DWGLoader::saveFolderAs]")
+                print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t openDWGFile failed!")
                 print("\t", dwg_file_path)
                 return False
 
             if not self.saveAs(tmp_file_path):
-                print("[ERROR][DWGLoader::saveFolderAs]")
+                print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t saveAs failed!")
                 print("\t", tmp_file_path)
                 return False
 
             if not self.closeDoc():
-                print("[ERROR][DWGLoader::saveFolderAs]")
+                print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t closeDoc failed!")
                 print("\t", dwg_file_path)
                 return False
 
             if not os.path.exists(tmp_file_path):
-                print("[ERROR][DWGLoader::saveFolderAs]")
+                print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t save dxf file failed!")
                 return False
 
             if not renameFile(tmp_file_path, save_file_path):
-                print("[ERROR][DWGLoader::saveFolderAs]")
+                print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t renameFile failed!")
                 print("\t", tmp_file_path)
                 print("\t ->")
@@ -200,8 +211,7 @@ def demo():
         "L:/1.dxf"
 
     dwg_loader = DWGLoader()
-    dwg_loader.openDWGFile(dwg_file_path)
-    dwg_loader.saveAs(save_file_path)
+    dwg_loader.transDwgToDxf(dwg_file_path, save_file_path)
     return True
 
 def demo_folder():
@@ -209,6 +219,6 @@ def demo_folder():
     save_folder_path = "L:/CAD/DXF/户型识别文件/"
 
     dwg_loader = DWGLoader()
-    dwg_loader.saveFolderAs(dwg_folder_path, save_folder_path, True)
+    dwg_loader.transDwgFolderToDxf(dwg_folder_path, save_folder_path, True)
     return True
 
