@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.append("../method-manage")
+
 import os
 import json
 import ezdxf
@@ -10,7 +13,7 @@ from autocad_manage.Config.configs import BASE_CONFIG, CONFIG_COLLECTION
 
 from autocad_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
 
-from autocad_manage.Method.path import createFileFolder, renameFile
+from method_manage.Method.path import createFileFolder, renameFile
 
 class DXFLoader(object):
     def __init__(self, config=None):

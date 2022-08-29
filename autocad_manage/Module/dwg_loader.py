@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.append("../method-manage")
+
 import os
 import comtypes.client
 #  import win32com.client
 from tqdm import tqdm
 
-from autocad_manage.Config.tmp_path import TMP_PATH
+from method_manage.Config.tmp_path import TMP_PATH
 
-from autocad_manage.Method.path import createFileFolder, removeIfExist, renameFile
+from method_manage.Method.path import createFileFolder, removeIfExist, renameFile
 
 class DWGLoader(object):
     def __init__(self):
