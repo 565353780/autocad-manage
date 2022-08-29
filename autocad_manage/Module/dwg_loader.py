@@ -9,7 +9,7 @@ import comtypes.client
 #  import win32com.client
 from tqdm import tqdm
 
-from method_manage.Config.tmp_path import TMP_PATH
+from method_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
 from method_manage.Method.path import createFileFolder, removeIfExist, renameFile
 
@@ -116,7 +116,7 @@ class DWGLoader(object):
         return True
 
     def closeDoc(self):
-        tmp_file_path = TMP_PATH + "tmp.dwg"
+        tmp_file_path = TMP_SAVE_FOLDER_PATH + "tmp.dwg"
         removeIfExist(tmp_file_path)
 
         if not self.saveAs(tmp_file_path):
