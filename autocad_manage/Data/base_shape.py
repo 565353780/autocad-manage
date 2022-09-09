@@ -18,5 +18,7 @@ class BaseShape(Label):
         json_dict = {}
         for key, item in self.attribs_dict.items():
             json_dict[key] = str(item)
+
+        json_dict["label_dict"] = self.label_dict
         return json_dict
 
