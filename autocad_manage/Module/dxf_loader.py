@@ -9,14 +9,14 @@ import json
 import ezdxf
 from tqdm import tqdm
 
-from autocad_manage.Config.configs import BASE_CONFIG, CONFIG_COLLECTION
+from method_manage.Method.path import createFileFolder, renameFile
+
+from autocad_manage.Config.base_config import BASE_CONFIG
 
 from autocad_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
 
-from method_manage.Method.path import createFileFolder, renameFile
-
 class DXFLoader(object):
-    def __init__(self, config=None):
+    def __init__(self, dxf_file_path=None, config=BASE_CONFIG):
         self.load_depth_dict = {
             "LWPOLYLINE" : -1,
             "INSERT" : 1,
@@ -35,16 +35,18 @@ class DXFLoader(object):
         self.bbox = BBox()
         self.undefined_entity_type_list = []
 
-        if self.config is not None:
-            self.loadFile(self.config['dxf_file_path'])
+        if dxf_file_path is not None:
+            self.loadFile(dxf_file_path)
         return
 
     def reset(self):
         self.doc = None
         self.msp = None
         self.layout_names = []
+        self.base_shape_list = []
         self.line_list = []
         self.circle_list = []
+        self.arc_list = []
         self.bbox = BBox()
         self.undefined_entity_type_list = []
         return True
@@ -180,11 +182,11 @@ class DXFLoader(object):
                 print("\t addBBoxPosition for line failed!")
                 return False
 
-        for circle in self.circle_list:
-            if not self.bbox.addBBoxPosition(circle.bbox):
-                print("[ERROR][DXFLoader::updateBBox]")
-                print("\t addBBoxPosition for circle failed!")
-                return False
+        #  for circle in self.circle_list:
+            #  if not self.bbox.addBBoxPosition(circle.bbox):
+                #  print("[ERROR][DXFLoader::updateBBox]")
+                #  print("\t addBBoxPosition for circle failed!")
+                #  return False
 
         for arc in self.arc_list:
             if not self.bbox.addBBoxPosition(arc.bbox):
@@ -449,10 +451,10 @@ class DXFLoader(object):
         return True
 
 def demo():
-    config = CONFIG_COLLECTION['render_all']
-    save_json_file_path = "/home/chli/chLi/CAD/给坤哥测试用例/户型图3.json"
+    dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
+    save_json_file_path = "/home/chli/chLi/CAD/JSON/户型识别文件/1.json"
 
-    dxf_loader = DXFLoader(config)
+    dxf_loader = DXFLoader(dxf_file_path)
     dxf_loader.outputInfo()
     dxf_loader.saveJson(save_json_file_path)
     return True

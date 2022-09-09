@@ -5,17 +5,20 @@ import cv2
 import numpy as np
 from random import randint
 
-from autocad_manage.Config.configs import CONFIG_COLLECTION
+from method_manage.Method.path import createFileFolder
+
+from autocad_manage.Config.base_config import BASE_CONFIG
 
 from autocad_manage.Data.shape import Point
 
 from autocad_manage.Method.labels import getShapeListDictWithLabel
+from autocad_manage.Method.image import getImageParam
 
 from autocad_manage.Module.dxf_loader import DXFLoader
 
 class DXFRenderer(DXFLoader):
-    def __init__(self, config):
-        super(DXFRenderer, self).__init__(config)
+    def __init__(self, dxf_file_path=None, config=BASE_CONFIG):
+        super(DXFRenderer, self).__init__(dxf_file_path, config)
         self.line_color = [0, 255, 0]
         self.circle_color = [0, 255, 255]
         self.arc_color = [0, 0, 255]
@@ -42,6 +45,10 @@ class DXFRenderer(DXFLoader):
                           self.config['free_width'],
                           self.config['is_reverse_y'])
         return
+
+    def reset(self):
+        super().reset()
+        return True
 
     def setImageSize(self,
                      image_width,
@@ -156,22 +163,6 @@ class DXFRenderer(DXFLoader):
             self.drawLine(line, color)
         return True
 
-    def drawLineLabel(self, label, color=None):
-        value_color_dict = {}
-        for line in self.line_list:
-            value = line.getLabel(label)
-            if value is None:
-                continue
-            if color is None:
-                if value not in value_color_dict.keys():
-                    random_color = [randint(0, 255),
-                                    randint(0, 255),
-                                    randint(0, 255)]
-                    value_color_dict[value] = random_color
-                color = value_color_dict[value]
-            self.drawLine(line, color)
-        return True
-
     def drawCircleList(self, circle_list, color):
         for circle in circle_list:
             self.drawCircle(circle, color)
@@ -215,23 +206,50 @@ class DXFRenderer(DXFLoader):
         self.drawArcList(self.arc_list, self.arc_color)
         return True
 
-    def render(self):
-        self.updateImageTrans()
+    def renderFrame(self):
+        if not self.updateImageTrans():
+            print("[ERROR][DXFRenderer::renderFrame]")
+            print("\t updateImageTrans failed!")
+            return False
+
         self.image = np.zeros((self.render_image_height, self.render_image_width, 3))
 
         if not self.drawShape():
-            print("[ERROR][DXFRenderer::render]")
+            print("[ERROR][DXFRenderer::renderFrame]")
             print("\t drawShape failed!")
+            return False
+        return True
+
+    def saveImage(self, save_image_file_path):
+        if not self.renderFrame():
+            print("[ERROR][DXFRenderer::saveImage]")
+            print("\t renderFrame failed!")
+            return False
+
+        createFileFolder(save_image_file_path)
+
+        image_format = save_image_file_path.split(".")[-1]
+        image_param = getImageParam(image_format)
+
+        cv2.imwrite(save_image_file_path, self.image, image_param)
+        return True
+
+    def render(self):
+        if not self.renderFrame():
+            print("[ERROR][DXFRenderer::render]")
+            print("\t renderFrame failed!")
             return False
 
         cv2.imshow(self.config['window_name'], self.image)
         return True
 
 def demo():
-    config = CONFIG_COLLECTION['render_all']
+    dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
+    save_image_file_path = "/home/chli/chLi/CAD/Image/户型识别文件/1.png"
 
-    dxf_renderer = DXFRenderer(config)
+    dxf_renderer = DXFRenderer(dxf_file_path)
     dxf_renderer.outputInfo()
+    dxf_renderer.saveImage(save_image_file_path)
     dxf_renderer.render()
     cv2.waitKey(0)
     return True

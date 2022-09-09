@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import numpy as np
+from tqdm import tqdm
 from cv2 import waitKey
 
-from autocad_manage.Config.configs import CONFIG_COLLECTION
+from method_manage.Method.path import renameFile
+
+from autocad_manage.Config.base_config import BASE_CONFIG
 
 from autocad_manage.Data.line import Line
 from autocad_manage.Data.line_cluster import LineCluster
@@ -24,11 +28,16 @@ from autocad_manage.Method.labels import \
 from autocad_manage.Module.dxf_renderer import DXFRenderer
 
 class DXFLayoutDetector(DXFRenderer):
-    def __init__(self, config):
-        super(DXFLayoutDetector, self).__init__(config)
+    def __init__(self, dxf_file_path=None, config=BASE_CONFIG):
+        super(DXFLayoutDetector, self).__init__(dxf_file_path, config)
 
-        self.detectLayout()
+        if dxf_file_path is not None:
+            self.detectLayout()
         return
+
+    def reset(self):
+        super().reset()
+        return True
 
     def updateValidForLine(self):
         for line in self.line_list:
@@ -555,7 +564,6 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def detectLayout(self):
-        self.circle_list = []
         self.updateBBox()
 
         if not self.updateValidForLine():
@@ -627,14 +635,15 @@ class DXFLayoutDetector(DXFRenderer):
             print("\t updateUniformAndRandomDistWindowForConnectWindowLine failed!")
             return False
 
-        self.outputLabel([
-            "Valid",
-            "Horizontal", "Vertical",
-            "Cabinet", "CabinetBBox",
-            "Unit", "UnitCrossCluster",
-            "Layout", "LayoutCrossCluster",
-            "SingleConnect",
-        ])
+        #  self.outputLabel([
+            #  "Valid",
+            #  "Horizontal", "Vertical",
+            #  "Cabinet", "CabinetBBox",
+            #  "Unit", "UnitCrossCluster",
+            #  "Layout", "LayoutCrossCluster",
+            #  "SingleConnect",
+        #  ])
+
         return True
 
     def drawShape(self):
@@ -649,32 +658,154 @@ class DXFLayoutDetector(DXFRenderer):
         self.drawLineLabel("UniformDistWindow", [0, 255, 0])
         return True
 
-def demo_with_edit_config(config, kv_list):
-    for k, v in kv_list:
-        config[k] = v
-    dxf_layout_detector = DXFLayoutDetector(config)
-    dxf_layout_detector.render()
-    return True
+    def transDxfToJsonWithLayout(self,
+                                 dxf_file_path,
+                                 save_json_file_path,
+                                 save_image_file_path=None):
+        if not self.loadFile(dxf_file_path):
+            print("[ERROR][DXFLayoutDetector::transDxfToJsonWithLayout]")
+            print("\t loadFile failed!")
+            print("\t", dxf_file_path)
+            return False
 
-def demo_debug():
-    config = CONFIG_COLLECTION['3']
+        if not self.detectLayout():
+            print("[ERROR][DXFLayoutDetector::transDxfToJsonWithLayout]")
+            print("\t detectLayout failed!")
+            print("\t", dxf_file_path)
+            return False
 
-    renderer = DXFRenderer(config)
-    renderer.render()
+        if save_image_file_path is not None:
+            if not self.saveImage(save_image_file_path):
+                print("[ERROR][DXFLayoutDetector::transDxfToJsonWithLayout]")
+                print("\t saveImage failed!")
+                print("\t", save_image_file_path)
+                return False
 
-    demo_with_edit_config(config, [['window_name', 'detect']])
-    waitKey(0)
-    return True
+        tmp_file_path = save_json_file_path[:-5] + "_tmp.json"
+
+        if not self.saveJson(tmp_file_path):
+            print("[ERROR][DXFLayoutDetector::transDxfToJsonWithLayout]")
+            print("\t saveJson failed!")
+            print("\t", tmp_file_path)
+            return False
+
+        if not os.path.exists(tmp_file_path):
+            print("[ERROR][DXFLayoutDetector::transDxfToJsonWithLayout]")
+            print("\t trans dxf to json failed!")
+            print("\t", dxf_file_path)
+            return False
+
+        if not renameFile(tmp_file_path, save_json_file_path):
+            print("[ERROR][DXFLayoutDetector::transDxfToJsonWithLayout]")
+            print("\t renameFile failed!")
+            print("\t", tmp_file_path)
+            print("\t ->")
+            print("\t", save_json_file_path)
+            return False
+        return True
+
+    def transDxfFolderToJsonWithLayout(self,
+                                       dxf_folder_path,
+                                       save_json_folder_path,
+                                       save_image_folder_path=None,
+                                       print_progress=False):
+        file_path_pair_list = []
+        for root, _, files in os.walk(dxf_folder_path):
+            for file_name in files:
+                if file_name[-4:] != ".dxf":
+                    continue
+                dxf_file_path = root + file_name
+                save_json_file_path = \
+                    root.replace(dxf_folder_path, save_json_folder_path) + \
+                    file_name[:-4] + ".json"
+                save_image_file_path = None
+                if save_image_folder_path is not None:
+                    save_image_file_path = \
+                        root.replace(dxf_folder_path, save_image_folder_path) + \
+                        file_name[:-4] + ".png"
+                file_path_pair_list.append([dxf_file_path, save_json_file_path, save_image_file_path])
+
+        for_data = file_path_pair_list
+        if print_progress:
+            print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+            print("\t start trans dxf to json...")
+            for_data = tqdm(file_path_pair_list)
+        for file_path_list in for_data:
+            dxf_file_path, save_json_file_path, save_image_file_path = file_path_list
+
+            if os.path.exists(save_json_file_path):
+                continue
+
+            tmp_file_path = save_json_file_path[:-5] + "_tmp.json"
+
+            if not self.loadFile(dxf_file_path):
+                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print("\t loadFile failed!")
+                print("\t", dxf_file_path)
+                return False
+
+            if not self.detectLayout():
+                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print("\t detectLayout failed!")
+                return False
+
+            if save_image_file_path is not None:
+                if not self.saveImage(save_image_file_path):
+                    print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                    print("\t saveImage failed!")
+                    print("\t", save_image_file_path)
+                    return False
+
+            if not self.saveJson(tmp_file_path):
+                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print("\t saveJson failed!")
+                print("\t", tmp_file_path)
+                return False
+
+            if not os.path.exists(tmp_file_path):
+                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print("\t trans dxf to json failed!")
+                return False
+
+            if not renameFile(tmp_file_path, save_json_file_path):
+                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print("\t renameFile failed!")
+                return False
+        return True
 
 def demo():
-    config = CONFIG_COLLECTION['test1']
+    dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
+    save_json_file_path = "/home/chli/chLi/CAD/JSON/户型识别文件/1.json"
+    save_image_file_path = "/home/chli/chLi/CAD/Image/户型识别文件/1.png"
 
-    dxf_layout_detector = DXFLayoutDetector(config)
+    dxf_layout_detector = DXFLayoutDetector(dxf_file_path)
     dxf_layout_detector.outputInfo()
+    dxf_layout_detector.saveImage(save_image_file_path)
     dxf_layout_detector.render()
     waitKey(0)
+    dxf_layout_detector.saveJson(save_json_file_path)
     return True
 
-if __name__ == "__main__":
-    demo()
+def demo_trans():
+    dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
+    save_json_file_path = "/home/chli/chLi/CAD/JSON/户型识别文件/1.json"
+    save_image_file_path = "/home/chli/chLi/CAD/Image/户型识别文件/1.png"
+
+    dxf_layout_detector = DXFLayoutDetector()
+    dxf_layout_detector.transDxfToJsonWithLayout(dxf_file_path,
+                                                 save_json_file_path,
+                                                 save_image_file_path)
+    return True
+
+def demo_trans_folder():
+    dxf_folder_path = "/home/chli/chLi/CAD/DXF/户型识别文件/"
+    save_json_folder_path = "/home/chli/chLi/CAD/JSON/户型识别文件/"
+    save_image_folder_path = "/home/chli/chLi/CAD/Image/户型识别文件/"
+
+    dxf_layout_detector = DXFLayoutDetector()
+    dxf_layout_detector.transDxfFolderToJsonWithLayout(dxf_folder_path,
+                                                       save_json_folder_path,
+                                                       save_image_folder_path,
+                                                       True)
+    return True
 
