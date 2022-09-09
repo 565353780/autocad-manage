@@ -230,12 +230,7 @@ def demo():
     dwg_file_path = \
         "L:/CAD/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dwg"
     save_file_path = \
-        "L:/CAD/DXF/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dxf"
-
-    dwg_file_path = \
-        "L:/CAD/户型识别文件/1.dwg"
-    save_file_path = \
-        "L:/1.dxf"
+        "L:/CAD/output/DXF/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dxf"
 
     dwg_loader = DWGLoader()
     dwg_loader.transDwgToDxf(dwg_file_path, save_file_path)
