@@ -115,7 +115,7 @@ class DXFRenderer(DXFLoader):
         cv2.circle(self.image,
                    (point_in_image.x, point_in_image.y),
                    1,
-                   np.array(color, dtype=np.float) / 255.0,
+                   tuple(color),
                    4)
         return True
 
@@ -125,7 +125,7 @@ class DXFRenderer(DXFLoader):
         cv2.line(self.image,
                  (start_point_in_image.x, start_point_in_image.y),
                  (end_point_in_image.x, end_point_in_image.y),
-                 np.array(color, dtype=np.float) / 255.0,
+                 tuple(color),
                  1, 4)
         return True
 
@@ -135,7 +135,7 @@ class DXFRenderer(DXFLoader):
         cv2.circle(self.image,
                    (center_in_image.x, center_in_image.y),
                    radius_in_image,
-                   np.array(color, dtype=np.float) / 255.0,
+                   tuple(color),
                    1, 8, 0)
         return True
 
@@ -149,7 +149,7 @@ class DXFRenderer(DXFLoader):
             cv2.line(self.image,
                      (current_point_in_image.x, current_point_in_image.y),
                      (next_point_in_image.x, next_point_in_image.y),
-                     np.array(color, dtype=np.float) / 255.0,
+                     tuple(color),
                      1, 4)
         return True
 
@@ -212,7 +212,7 @@ class DXFRenderer(DXFLoader):
             print("\t updateImageTrans failed!")
             return False
 
-        self.image = np.zeros((self.render_image_height, self.render_image_width, 3))
+        self.image = np.zeros((self.render_image_height, self.render_image_width, 3), dtype=np.uint8)
 
         if not self.drawShape():
             print("[ERROR][DXFRenderer::renderFrame]")
