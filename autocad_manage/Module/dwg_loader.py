@@ -237,8 +237,8 @@ def demo():
     return True
 
 def demo_folder():
-    dwg_folder_path = "L:/CAD/户型识别文件/"
-    save_folder_path = "L:/CAD/DXF/户型识别文件/"
+    dwg_folder_path = "L:/CAD/House_1/"
+    save_folder_path = "L:/CAD/DXF/House_1/"
 
     dwg_loader = DWGLoader()
     dwg_loader.transDwgFolderToDxf(dwg_folder_path, save_folder_path, True)
