@@ -48,6 +48,7 @@ look at
 
 ```bash
 demo.py
+demo_win.py
 ```
 
 ## Enjoy it~
