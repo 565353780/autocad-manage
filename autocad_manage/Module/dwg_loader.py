@@ -176,16 +176,9 @@ class DWGLoader(object):
                 if file_name[-4:] != ".dwg":
                     continue
                 dwg_file_path = root + "/" + file_name
-                #  dwg_file_path = dwg_file_path.replace("\\", "/")
                 save_file_path = \
                     root.replace(dwg_folder_path, save_folder_path) + "/" + \
                     file_name[:-4] + ".dxf"
-                #  save_file_path = save_file_path.replace("\\", "/")
-                print(dwg_file_path)
-                print(os.path.exists(dwg_file_path))
-                print(save_file_path)
-                print(os.path.exists(save_file_path))
-                exit()
                 file_path_pair_list.append([dwg_file_path, save_file_path])
 
         for_data = file_path_pair_list
