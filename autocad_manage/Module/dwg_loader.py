@@ -94,6 +94,15 @@ class DWGLoader(object):
             return False
         return True
 
+    def fixError(self):
+        cmd = "AUDIT " + "Y\n"
+        if not self.sendCMD(cmd):
+            print("[ERROR][DWGLoader::fixError]")
+            print("\t sendCMD failed!")
+            print("\t", cmd)
+            return False
+        return True
+
     def saveAs(self, save_file_path):
         createFileFolder(save_file_path)
 
@@ -140,6 +149,12 @@ class DWGLoader(object):
         if not self.openDWGFile(dwg_file_path):
             print("[ERROR][DWGLoader::transDwgToDxf]")
             print("\t openDWGFile failed!")
+            print("\t", dwg_file_path)
+            return False
+
+        if not self.fixError():
+            print("[ERROR][DWGLoader::transDwgToDxf]")
+            print("\t fixError failed!")
             print("\t", dwg_file_path)
             return False
 
@@ -197,6 +212,12 @@ class DWGLoader(object):
             if not self.openDWGFile(dwg_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t openDWGFile failed!")
+                print("\t", dwg_file_path)
+                return False
+
+            if not self.fixError():
+                print("[ERROR][DWGLoader::transDwgFolderToDxf]")
+                print("\t fixError failed!")
                 print("\t", dwg_file_path)
                 return False
 
