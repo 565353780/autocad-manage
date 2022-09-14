@@ -211,9 +211,9 @@ class DWGLoader(object):
 
             if not self.openDWGFile(dwg_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
-                print("\t openDWGFile failed!")
+                print("\t openDWGFile failed! skip this one!")
                 print("\t", dwg_file_path)
-                return False
+                continue
 
             if not self.fixError():
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
