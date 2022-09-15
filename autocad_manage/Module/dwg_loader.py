@@ -236,7 +236,8 @@ class DWGLoader(object):
             if not os.path.exists(tmp_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t save dxf file failed!")
-                return False
+                continue
+                #  return False
 
             if not renameFile(tmp_file_path, save_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
