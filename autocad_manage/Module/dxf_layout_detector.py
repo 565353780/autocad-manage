@@ -744,7 +744,8 @@ class DXFLayoutDetector(DXFRenderer):
                 print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
                 print("\t loadFile failed!")
                 print("\t", dxf_file_path)
-                return False
+                continue
+                #  return False
 
             if not self.detectLayout():
                 print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")

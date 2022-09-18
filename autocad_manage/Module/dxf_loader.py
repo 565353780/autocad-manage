@@ -166,7 +166,12 @@ class DXFLoader(object):
         return True
 
     def loadAllEntity(self):
+        num = 0
+
         for entity in self.msp:
+            num += 1
+            if num > 5000:
+                return False
             self.loadEntity(entity)
         return True
 
@@ -459,8 +464,9 @@ def demo():
 def demo_folder():
     dxf_folder_path = "L:/CAD/DXF/户型识别文件/"
     save_folder_path = "L:/CAD/JSON/户型识别文件/"
+    print_progress = True
 
     dxf_loader = DXFLoader()
-    dxf_loader.transDxfFolderToJson(dxf_folder_path, save_folder_path, True)
+    dxf_loader.transDxfFolderToJson(dxf_folder_path, save_folder_path, print_progress)
     return True
 
