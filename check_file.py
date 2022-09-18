@@ -11,11 +11,15 @@ move_folder_path = "/home/chli/chLi/CAD/20220918_layout_result/"
 source_file_path_list = []
 for root, _, files in os.walk(source_folder_path):
     for file_name in files:
+        if file_name[-4:] != ".png":
+            continue
         source_file_path_list.append(root + "/" + file_name)
 
 target_file_name_list = []
 for root, _, files in os.walk(target_folder_path):
     for file_name in files:
+        if file_name[-4:] != ".png":
+            continue
         target_file_name_list.append(file_name)
 
 move_file_path_list = []
