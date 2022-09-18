@@ -735,6 +735,13 @@ class DXFLayoutDetector(DXFRenderer):
         for file_path_list in for_data:
             dxf_file_path, save_json_file_path, save_image_file_path = file_path_list
 
+            fsize = os.path.getsize(dxf_file_path)
+            fsize = fsize / float(1024*1024)
+            fsize = round(fsize, 2)
+            print(fsize)
+            if fsize > 10:
+                continue
+
             if os.path.exists(save_json_file_path):
                 continue
 
