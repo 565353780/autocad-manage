@@ -284,6 +284,11 @@ class DXFRenderer(DXFLoader):
         image_format = save_image_file_path.split(".")[-1]
         image_param = getImageParam(image_format)
 
+        if self.render_image_width * self.render_image_height == 0:
+            print("[WARN][DXFRenderer::saveImage]")
+            print("\t render image size not valid! skip saving!")
+            return True
+
         cv2.imwrite(save_image_file_path, self.image, image_param)
         return True
 
