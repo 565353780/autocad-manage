@@ -4,7 +4,6 @@
 
 ```bash
 git clone https://github.com/565353780/autocad-manage.git
-git clone https://github.com/565353780/method-manage.git
 cd autocad-manage
 ```
 
