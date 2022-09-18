@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-sys.path.append("../method-manage/")
-
 import os
 
-from method_manage.Config.path import TMP_SAVE_FOLDER_PATH
+from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
-from method_manage.Method.path import removeIfExist
-from method_manage.Method.signal import getDataIn, sendDataOut
-from method_manage.Method.encode import getBase64Data, saveData
+from autocad_manage.Method.path import removeIfExist
+from autocad_manage.Method.signal import getDataIn, sendDataOut
+from autocad_manage.Method.encode import getBase64Data, saveData
 
 from autocad_manage.Module.dwg_loader import DWGLoader
 from autocad_manage.Module.dxf_loader import DXFLoader

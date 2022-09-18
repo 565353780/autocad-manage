@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from random import randint
 
-from method_manage.Method.path import createFileFolder
+from autocad_manage.Method.path import createFileFolder
 
 from autocad_manage.Config.base_config import BASE_CONFIG
 
@@ -29,10 +29,10 @@ class DXFRenderer(DXFLoader):
 
         self.image_width = None
         self.image_height = None
-        self.free_width = None
+        self.free_width = 0
         self.is_reverse_y = None
 
-        self.trans_point = None
+        self.trans_point = Point()
         self.scale = None
 
         self.render_image_width = None
@@ -87,15 +87,27 @@ class DXFRenderer(DXFLoader):
         if render_scale == float("inf"):
             render_scale = 1.0
 
-        self.render_image_width = int(diff_point.x * render_scale)
-        self.render_image_height = int(diff_point.y * render_scale)
+        if not diff_point.isFinite():
+            self.render_image_width = self.image_width
+            self.render_image_height = self.image_height
+        else:
+            self.render_image_width = int(diff_point.x * render_scale)
+            self.render_image_height = int(diff_point.y * render_scale)
         return True
 
     def getImagePosition(self, world_potision):
+        if not self.trans_point.isFinite():
+            return Point(
+                int(self.free_width),
+                int(self.free_width),
+                int(self.free_width)
+            )
+
         image_position = Point(
             int(self.free_width + (world_potision.x + self.trans_point.x) * self.scale),
             int(self.free_width + (world_potision.y + self.trans_point.y) * self.scale),
-            int(self.free_width + (world_potision.z + self.trans_point.z) * self.scale))
+            int(self.free_width + (world_potision.z + self.trans_point.z) * self.scale)
+        )
 
         if self.is_reverse_y:
             image_position.y = self.render_image_height - image_position.y
@@ -105,10 +117,18 @@ class DXFRenderer(DXFLoader):
         if self.is_reverse_y:
             image_position.y = self.render_image_height - image_position.y
 
+        if not self.trans_point.isFinite():
+            return Point(
+                float("inf"),
+                float("inf"),
+                float("inf")
+            )
+
         world_potision = Point(
             1.0 * (image_position.x - self.free_width) / self.scale - self.trans_point.x,
             1.0 * (image_position.y - self.free_width) / self.scale - self.trans_point.y,
-            1.0 * (image_position.z - self.free_width) / self.scale - self.trans_point.z)
+            1.0 * (image_position.z - self.free_width) / self.scale - self.trans_point.z
+        )
         return world_potision
 
     def drawPoint(self, point , color):

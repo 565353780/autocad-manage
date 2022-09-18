@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-sys.path.append("../method-manage")
-
 import os
 import json
 import ezdxf
 from tqdm import tqdm
 
-from method_manage.Method.path import createFileFolder, renameFile
+from autocad_manage.Method.path import createFileFolder, renameFile
 
 from autocad_manage.Config.base_config import BASE_CONFIG
 

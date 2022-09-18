@@ -5,12 +5,9 @@ import os
 import json
 from flask import Flask, request
 
-import sys
-sys.path.append("../method-manage/")
+from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
-from method_manage.Config.path import TMP_SAVE_FOLDER_PATH
-
-from method_manage.Method.signal import sendDataIn, getDataOut
+from autocad_manage.Method.signal import sendDataIn, getDataOut
 
 def demo():
     port = 9366

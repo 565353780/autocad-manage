@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-sys.path.append("../method-manage/")
-
 import json
 import requests
 
-from method_manage.Method.encode import getBase64Data, saveData
+from autocad_manage.Method.encode import getBase64Data, saveData
 
 class AutoCADClient(object):
     def __init__(self, server_ip, server_port):

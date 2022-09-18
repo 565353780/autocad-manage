@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 from cv2 import waitKey
 
-from method_manage.Method.path import renameFile
+from autocad_manage.Method.path import renameFile
 
 from autocad_manage.Config.base_config import BASE_CONFIG
 
