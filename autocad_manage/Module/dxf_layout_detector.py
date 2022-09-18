@@ -333,6 +333,8 @@ class DXFLayoutDetector(DXFRenderer):
                     first_line_idx = i
                     first_min_dist_to_arc_line = current_dist_to_door_line
 
+                if first_line_idx == -1:
+                    continue
                 first_min_dist_line = line_list[first_line_idx]
                 second_min_dist_line = line_list[second_line_idx]
 
