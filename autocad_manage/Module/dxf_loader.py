@@ -166,12 +166,7 @@ class DXFLoader(object):
         return True
 
     def loadAllEntity(self):
-        num = 0
-
         for entity in self.msp:
-            num += 1
-            if num > 5000:
-                return False
             self.loadEntity(entity)
         return True
 
