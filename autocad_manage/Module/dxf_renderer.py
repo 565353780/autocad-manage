@@ -38,6 +38,7 @@ class DXFRenderer(DXFLoader):
         self.render_image_width = None
         self.render_image_height = None
 
+        self.image_with_all_shape = None
         self.image = None
 
         self.setImageSize(self.config['image_width'],
@@ -200,13 +201,42 @@ class DXFRenderer(DXFLoader):
             self.drawArcList(arc_list, current_color)
         return True
 
+    def drawAllShape(self):
+        self.drawLineList(self.line_list, self.line_color)
+        self.drawCircleList(self.circle_list, self.circle_color)
+        self.drawArcList(self.arc_list, self.arc_color)
+        return True
+
+    def renderFrameWithAllShape(self):
+        if not self.updateImageTrans():
+            print("[ERROR][DXFRenderer::renderFrameWithAllShape]")
+            print("\t updateImageTrans failed!")
+            return False
+
+        self.image = np.zeros((self.render_image_height, self.render_image_width, 3), dtype=np.uint8)
+
+        if not self.drawAllShape():
+            print("[ERROR][DXFRenderer::renderFrameWithAllShape]")
+            print("\t drawAllShape failed!")
+            return False
+
+        self.image_with_all_shape = self.image
+        self.image = None
+        return True
+
     def drawShape(self):
         self.drawLineList(self.line_list, self.line_color)
         self.drawCircleList(self.circle_list, self.circle_color)
         self.drawArcList(self.arc_list, self.arc_color)
         return True
 
-    def renderFrame(self):
+    def renderFrame(self, compare_with_all_shape=False):
+        if compare_with_all_shape:
+            if not self.renderFrameWithAllShape():
+                print("[ERROR][DXFRenderer::renderFrame]")
+                print("\t renderFrameWithAllShape failed!")
+                return False
+
         if not self.updateImageTrans():
             print("[ERROR][DXFRenderer::renderFrame]")
             print("\t updateImageTrans failed!")
@@ -218,10 +248,13 @@ class DXFRenderer(DXFLoader):
             print("[ERROR][DXFRenderer::renderFrame]")
             print("\t drawShape failed!")
             return False
+
+        if compare_with_all_shape:
+            self.image = np.hstack((self.image_with_all_shape, self.image))
         return True
 
-    def saveImage(self, save_image_file_path):
-        if not self.renderFrame():
+    def saveImage(self, save_image_file_path, compare_with_all_shape=False):
+        if not self.renderFrame(compare_with_all_shape):
             print("[ERROR][DXFRenderer::saveImage]")
             print("\t renderFrame failed!")
             return False
@@ -246,10 +279,11 @@ class DXFRenderer(DXFLoader):
 def demo():
     dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
     save_image_file_path = "/home/chli/chLi/CAD/Image/户型识别文件/1.png"
+    compare_with_all_shape = True
 
     dxf_renderer = DXFRenderer(dxf_file_path)
     dxf_renderer.outputInfo()
-    dxf_renderer.saveImage(save_image_file_path)
+    dxf_renderer.saveImage(save_image_file_path, compare_with_all_shape)
     dxf_renderer.render()
     cv2.waitKey(0)
     return True
