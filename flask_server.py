@@ -9,6 +9,7 @@ from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
 from autocad_manage.Method.signal import sendDataIn, getDataOut
 
+
 def demo():
     port = 9366
 
@@ -50,6 +51,6 @@ def demo():
     app.run('0.0.0.0', port)
     return True
 
+
 if __name__ == "__main__":
     demo()
-
