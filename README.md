@@ -19,7 +19,25 @@ for Windows
 ./setup_win.sh
 ```
 
-## Run Server
+## Local Mode
+
+start AutoCAD application
+
+### trans DWG to DXF
+
+```bash
+python demo_win.py
+```
+
+### DXF layout detect
+
+```bash
+python demo.py
+```
+
+## Server Mode
+
+### Run Server
 
 start AutoCAD application
 
@@ -35,7 +53,7 @@ run flask server
 python flask_server.py
 ```
 
-## Run Client
+### Run Client
 
 ```bash
 python client.py
