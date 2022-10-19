@@ -41,14 +41,5 @@ python flask_server.py
 python client.py
 ```
 
-## Usage
-
-look at
-
-```bash
-demo.py
-demo_win.py
-```
-
 ## Enjoy it~
 
