@@ -10,13 +10,13 @@ cd autocad-manage
 ## Install
 
 ```bash
-pip install ezdxf opencv-python tqdm
+./setup.sh
 ```
 
-extra cmd for win
+for Windows
 
 ```bash
-pip install pypiwin32 comtypes
+./setup_win.sh
 ```
 
 ## Run Server
