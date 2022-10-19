@@ -3,7 +3,6 @@
 
 import os
 import comtypes.client
-#  import win32com.client
 from tqdm import tqdm
 
 from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
