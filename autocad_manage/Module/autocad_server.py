@@ -12,7 +12,9 @@ from autocad_manage.Method.encode import getBase64Data, saveData
 from autocad_manage.Module.dwg_loader import DWGLoader
 from autocad_manage.Module.dxf_loader import DXFLoader
 
+
 class AutoCADServer(object):
+
     def __init__(self):
         self.dwg_loader = DWGLoader()
         self.dxf_loader = DXFLoader()
@@ -111,7 +113,8 @@ class AutoCADServer(object):
         saveData(dwg_data, dwg_file_path)
 
         save_dxf_file_path = TMP_SAVE_FOLDER_PATH + dxf_file_basename + ".dxf"
-        if not self.dwg_loader.transDwgToDxf(dwg_file_path, save_dxf_file_path):
+        if not self.dwg_loader.transDwgToDxf(dwg_file_path,
+                                             save_dxf_file_path):
             print("[ERROR][AutoCADServer::transDwgToDxf]")
             print("\t transDwgToDxf failed!")
             return False
@@ -140,7 +143,8 @@ class AutoCADServer(object):
         saveData(dxf_data, dxf_file_path)
 
         save_json_file_path = TMP_SAVE_FOLDER_PATH + json_file_basename + ".json"
-        if not self.dxf_loader.transDxfToJson(dxf_file_path, save_json_file_path):
+        if not self.dxf_loader.transDxfToJson(dxf_file_path,
+                                              save_json_file_path):
             print("[ERROR][AutoCADServer::transDxfToJson]")
             print("\t transDxfToJson failed!")
             return False
@@ -170,14 +174,16 @@ class AutoCADServer(object):
 
         save_dxf_file_path = TMP_SAVE_FOLDER_PATH + json_file_basename + ".dxf"
         save_json_file_path = TMP_SAVE_FOLDER_PATH + json_file_basename + ".json"
-        if not self.dwg_loader.transDwgToDxf(dwg_file_path, save_dxf_file_path):
+        if not self.dwg_loader.transDwgToDxf(dwg_file_path,
+                                             save_dxf_file_path):
             print("[ERROR][AutoCADServer::transDwgToJson]")
             print("\t transDwgToDxf failed!")
             return False
 
         removeIfExist(dwg_file_path)
 
-        if not self.dxf_loader.transDxfToJson(save_dxf_file_path, save_json_file_path):
+        if not self.dxf_loader.transDxfToJson(save_dxf_file_path,
+                                              save_json_file_path):
             print("[ERROR][AutoCADServer::transDwgToJson]")
             print("\t transDxfToJson failed!")
             return False
@@ -215,7 +221,7 @@ class AutoCADServer(object):
         result = {'state': 'stop success'}
         sendDataOut('stop', result)
         return True
-    
+
     def start(self):
         while True:
             self.receiveFile()
@@ -230,9 +236,3 @@ class AutoCADServer(object):
             if self.stop():
                 break
         return True
-
-def demo():
-    autocad_server = AutoCADServer()
-    autocad_server.start()
-    return True
-

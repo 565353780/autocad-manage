@@ -4,7 +4,6 @@
 import os
 import numpy as np
 from tqdm import tqdm
-from cv2 import waitKey
 
 from autocad_manage.Method.path import renameFile
 
@@ -27,7 +26,9 @@ from autocad_manage.Method.labels import \
 
 from autocad_manage.Module.dxf_renderer import DXFRenderer
 
+
 class DXFLayoutDetector(DXFRenderer):
+
     def __init__(self, dxf_file_path=None, config=BASE_CONFIG):
         super(DXFLayoutDetector, self).__init__(dxf_file_path, config)
 
@@ -64,7 +65,8 @@ class DXFLayoutDetector(DXFRenderer):
     def updateCabinetForValidWithoutHVLine(self):
         cabinet_angle_error_max = 10
 
-        line_list = getShapeListWithLabel(self.line_list, "Valid", None, ["Horizontal", "Vertical"])
+        line_list = getShapeListWithLabel(self.line_list, "Valid", None,
+                                          ["Horizontal", "Vertical"])
 
         selected_line_idx_pair_list = []
         selected_line_length_pair_list = []
@@ -89,7 +91,8 @@ class DXFLayoutDetector(DXFRenderer):
                         abs_angle_2 > 90 - cabinet_angle_error_max:
                     continue
 
-                if abs(abs_angle_1 - abs_angle_2) > self.config['angle_error_max']:
+                if abs(abs_angle_1 -
+                       abs_angle_2) > self.config['angle_error_max']:
                     continue
 
                 length_2 = line_list[j].getLength()
@@ -111,7 +114,8 @@ class DXFLayoutDetector(DXFRenderer):
         length_min = selected_line_length_max / 10.0
 
         cabinet_idx = 0
-        for idx_pair, length_pair in zip(selected_line_idx_pair_list, selected_line_length_pair_list):
+        for idx_pair, length_pair in zip(selected_line_idx_pair_list,
+                                         selected_line_length_pair_list):
             if min(length_pair) < length_min:
                 continue
             line_list[idx_pair[0]].setLabel("Cabinet", cabinet_idx)
@@ -122,7 +126,8 @@ class DXFLayoutDetector(DXFRenderer):
     def updateCabinetBBoxForHVLine(self):
         line_list_dict = getShapeListDictWithLabel(self.line_list, "Cabinet")
 
-        line_list = getShapeListWithAnyLabelList(self.line_list, ["Horizontal", "Vertical"])
+        line_list = getShapeListWithAnyLabelList(self.line_list,
+                                                 ["Horizontal", "Vertical"])
 
         for key, cabinet_line_list in line_list_dict.items():
             line_cluster = LineCluster(cabinet_line_list)
@@ -131,13 +136,15 @@ class DXFLayoutDetector(DXFRenderer):
                 Line(bound_point_list[0], bound_point_list[1]),
                 Line(bound_point_list[0], bound_point_list[2]),
                 Line(bound_point_list[1], bound_point_list[3]),
-                Line(bound_point_list[2], bound_point_list[3])]
+                Line(bound_point_list[2], bound_point_list[3])
+            ]
 
             for bound_line in bound_line_list:
                 if not isLineConnectInLineList(bound_line, line_list):
                     continue
 
-                min_dist, min_dist_idx = getMinDistWithLineIdx(bound_line, line_list)
+                min_dist, min_dist_idx = getMinDistWithLineIdx(
+                    bound_line, line_list)
                 if min_dist > self.config['dist_error_max'] * 10:
                     break
 
@@ -145,11 +152,13 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateUnitAndRepeatForHVLine(self):
-        hv_line_list = getShapeListWithAnyLabelList(self.line_list, ["Horizontal", "Vertical"])
+        hv_line_list = getShapeListWithAnyLabelList(self.line_list,
+                                                    ["Horizontal", "Vertical"])
         unit_line_list = []
         repeat_line_list = []
         for line in hv_line_list:
-            if isHaveSameLine(line, unit_line_list, self.config['dist_error_max'] * 10):
+            if isHaveSameLine(line, unit_line_list,
+                              self.config['dist_error_max'] * 10):
                 repeat_line_list.append(line)
             else:
                 unit_line_list.append(line)
@@ -163,8 +172,7 @@ class DXFLayoutDetector(DXFRenderer):
 
     def updateCrossClusterForUnitLine(self):
         cluster_label_list = ["Unit"]
-        if not clusterLineByCross(self.line_list,
-                                  cluster_label_list,
+        if not clusterLineByCross(self.line_list, cluster_label_list,
                                   "UnitCrossCluster",
                                   self.config['dist_error_max']):
             print("[ERROR][DXFLayoutDetector::updateCrossClusterForUnitLine]")
@@ -174,7 +182,8 @@ class DXFLayoutDetector(DXFRenderer):
     def getMaxAreaLineListFromCluster(self, cluster_label):
         max_area_line_list = []
 
-        line_list_dict = getShapeListDictWithLabel(self.line_list, cluster_label)
+        line_list_dict = getShapeListDictWithLabel(self.line_list,
+                                                   cluster_label)
 
         max_bbox_area = 0
         for key in line_list_dict.keys():
@@ -189,7 +198,8 @@ class DXFLayoutDetector(DXFRenderer):
     def getMaxSizeLineListFromCluster(self, cluster_label):
         max_size_line_list = []
 
-        line_list_dict = getShapeListDictWithLabel(self.line_list, cluster_label)
+        line_list_dict = getShapeListDictWithLabel(self.line_list,
+                                                   cluster_label)
 
         max_line_num = 0
         for key in line_list_dict.keys():
@@ -203,7 +213,8 @@ class DXFLayoutDetector(DXFRenderer):
 
     def updateMaybeLayoutForCrossClusterLine(self):
         #  layout_line_list = self.getMaxAreaLineListFromCluster("UnitCrossCluster")
-        layout_line_list = self.getMaxSizeLineListFromCluster("UnitCrossCluster")
+        layout_line_list = self.getMaxSizeLineListFromCluster(
+            "UnitCrossCluster")
 
         for layout_line in layout_line_list:
             layout_line.setLabel("MaybeLayout")
@@ -229,7 +240,8 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateLayoutAndSingleConnectForMaybeLayoutLine(self):
-        single_connect_removed_line_list = getShapeListWithLabel(self.line_list, "MaybeLayout")
+        single_connect_removed_line_list = getShapeListWithLabel(
+            self.line_list, "MaybeLayout")
         last_line_list = []
 
         door_arc_list = getShapeListWithLabel(self.arc_list, "MaybeDoor")
@@ -242,12 +254,14 @@ class DXFLayoutDetector(DXFRenderer):
             single_connect_removed_line_list = []
 
             for line in last_line_list:
-                if isLineCrossArcList(line , door_arc_list, self.config['dist_error_max']):
+                if isLineCrossArcList(line, door_arc_list,
+                                      self.config['dist_error_max']):
                     single_connect_removed_line_list.append(line)
                     continue
 
                 start_point_cross_line_num = getPointCrossLineListNum(
-                    line.start_point, last_line_list, self.config['dist_error_max'] * 100)
+                    line.start_point, last_line_list,
+                    self.config['dist_error_max'] * 100)
                 if start_point_cross_line_num < 2:
                     find_single_connect_line = True
                     line.start_point.setLabel("SingleConnect")
@@ -255,7 +269,8 @@ class DXFLayoutDetector(DXFRenderer):
                     continue
 
                 end_point_cross_line_num = getPointCrossLineListNum(
-                    line.end_point, last_line_list, self.config['dist_error_max'] * 100)
+                    line.end_point, last_line_list,
+                    self.config['dist_error_max'] * 100)
                 if end_point_cross_line_num < 2:
                     find_single_connect_line = True
                     line.end_point.setLabel("SingleConnect")
@@ -273,17 +288,19 @@ class DXFLayoutDetector(DXFRenderer):
 
     def updateLayoutCrossClusterForLayoutLine(self):
         cluster_label_list = ["Layout"]
-        if not clusterLineByCross(self.line_list,
-                                  cluster_label_list,
+        if not clusterLineByCross(self.line_list, cluster_label_list,
                                   "LayoutCrossCluster",
                                   self.config['dist_error_max']):
-            print("[ERROR][DXFLayoutDetector::updateLayoutCrossClusterForLayoutLine]")
+            print(
+                "[ERROR][DXFLayoutDetector::updateLayoutCrossClusterForLayoutLine]"
+            )
             print("\t clusterLineByCross failed!")
         return True
 
     def updateConnectLayoutForLayoutCrossClusterLine(self):
         #  layout_line_list = self.getMaxAreaLineListFromCluster("LayoutCrossCluster")
-        layout_line_list = self.getMaxSizeLineListFromCluster("LayoutCrossCluster")
+        layout_line_list = self.getMaxSizeLineListFromCluster(
+            "LayoutCrossCluster")
 
         for layout_line in layout_line_list:
             layout_line.setLabel("ConnectLayout")
@@ -346,20 +363,24 @@ class DXFLayoutDetector(DXFRenderer):
                 if not is_first_line_hv or not is_second_line_hv:
                     continue
 
-                if not isLineParallel(first_min_dist_line, second_min_dist_line, angle_error_max):
+                if not isLineParallel(first_min_dist_line,
+                                      second_min_dist_line, angle_error_max):
                     continue
 
                 if not isLineParallel(arc_line, first_min_dist_line, angle_error_max) and \
                         not isLineParallel(arc_line, second_min_dist_line, angle_error_max):
                     continue
 
-                point_dist_s = getPointDist(first_min_dist_line.start_point, arc_line.end_point)
-                point_dist_e = getPointDist(first_min_dist_line.end_point, arc_line.end_point)
+                point_dist_s = getPointDist(first_min_dist_line.start_point,
+                                            arc_line.end_point)
+                point_dist_e = getPointDist(first_min_dist_line.end_point,
+                                            arc_line.end_point)
                 point_min_dist = min(point_dist_s, point_dist_e)
                 if point_min_dist > dist_error_max:
                     continue
 
-                door_line_pair_pair.append([line_list[first_line_idx], line_list[second_line_idx]])
+                door_line_pair_pair.append(
+                    [line_list[first_line_idx], line_list[second_line_idx]])
 
             if len(door_line_pair_pair) == 0:
                 continue
@@ -396,7 +417,8 @@ class DXFLayoutDetector(DXFRenderer):
                     door_line_point = second_min_dist_line.end_point
 
                 if isPointInArcArea(door_line_point, valid_door_arc):
-                    extra_door_line_list.append(Line(arc_line_point, door_line_point))
+                    extra_door_line_list.append(
+                        Line(arc_line_point, door_line_point))
 
         self.door_line_list = []
         for door_line_pair_pair in door_line_pair_pair_list:
@@ -406,7 +428,8 @@ class DXFLayoutDetector(DXFRenderer):
         self.door_line_list += extra_door_line_list
 
         door_idx = 0
-        for arc, door_line_pair_pair in zip(door_arc_list, door_line_pair_pair_list):
+        for arc, door_line_pair_pair in zip(door_arc_list,
+                                            door_line_pair_pair_list):
             arc.setLabel("Door", door_idx)
             for door_line_pair in door_line_pair_pair:
                 for door_line in door_line_pair:
@@ -419,13 +442,13 @@ class DXFLayoutDetector(DXFRenderer):
 
     def updateSimilarClusterIdxForConnectLayoutLine(self):
         cluster_label_list = ["ConnectLayout"]
-        if not clusterLineBySimilar(self.line_list,
-                                    cluster_label_list,
-                                    "LayoutSimilarCluster",
-                                    self.config['length_error_ratio_max'],
-                                    self.config['angle_error_max'],
-                                    self.config['dist_error_max']):
-            print("[ERROR][DXFLayoutDetector::updateSimilarClusterIdxForConnectLayoutLine]")
+        if not clusterLineBySimilar(
+                self.line_list, cluster_label_list, "LayoutSimilarCluster",
+                self.config['length_error_ratio_max'],
+                self.config['angle_error_max'], self.config['dist_error_max']):
+            print(
+                "[ERROR][DXFLayoutDetector::updateSimilarClusterIdxForConnectLayoutLine]"
+            )
             print("\t clusterLineBySimilar failed!")
         return True
 
@@ -433,11 +456,13 @@ class DXFLayoutDetector(DXFRenderer):
         window_line_num_min = self.config['window_line_num_min']
         window_line_num_max = self.config['window_line_num_max']
 
-        similar_cluster_dict = getShapeListDictWithLabel(self.line_list, "LayoutSimilarCluster")
+        similar_cluster_dict = getShapeListDictWithLabel(
+            self.line_list, "LayoutSimilarCluster")
 
         window_idx = 0
         for _, line_list in similar_cluster_dict.items():
-            if len(line_list) < window_line_num_min or len(line_list) > window_line_num_max:
+            if len(line_list) < window_line_num_min or len(
+                    line_list) > window_line_num_max:
                 continue
             for line in line_list:
                 line.setLabel("MaybeWindow", window_idx)
@@ -448,7 +473,8 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateNoCrossWindowForMaybeWindowLine(self):
-        maybe_window_dict = getShapeListDictWithLabel(self.line_list, "MaybeWindow")
+        maybe_window_dict = getShapeListDictWithLabel(self.line_list,
+                                                      "MaybeWindow")
 
         cross_window_key_list = []
         merge_key_list_list = []
@@ -532,13 +558,16 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateConnectAndDisconnectWindowForNoCrossWindowLine(self):
-        layout_line_list = getShapeListWithLabel(self.line_list, "ConnectLayout")
-        no_cross_window_dict = getShapeListDictWithLabel(self.line_list, "NoCrossWindow")
+        layout_line_list = getShapeListWithLabel(self.line_list,
+                                                 "ConnectLayout")
+        no_cross_window_dict = getShapeListDictWithLabel(
+            self.line_list, "NoCrossWindow")
 
         connect_window_idx = 0
         disconnect_window_idx = 0
         for _, window_line_list in no_cross_window_dict.items():
-            if isLineListConnectInAllLineList(window_line_list, layout_line_list,
+            if isLineListConnectInAllLineList(window_line_list,
+                                              layout_line_list,
                                               self.config['dist_error_max']):
                 for line in window_line_list:
                     line.setLabel("ConnectWindow", connect_window_idx)
@@ -550,12 +579,14 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def updateUniformAndRandomDistWindowForConnectWindowLine(self):
-        connect_window_dict = getShapeListDictWithLabel(self.line_list, "ConnectWindow")
+        connect_window_dict = getShapeListDictWithLabel(
+            self.line_list, "ConnectWindow")
 
         uniform_dist_window_idx = 0
         random_dist_window_idx = 0
         for _, connect_window_line_list in connect_window_dict.items():
-            if isLineListUniform(connect_window_line_list, self.config['uniform_dist_var_min']):
+            if isLineListUniform(connect_window_line_list,
+                                 self.config['uniform_dist_var_min']):
                 for line in connect_window_line_list:
                     line.setLabel("UniformDistWindow", uniform_dist_window_idx)
                 uniform_dist_window_idx += 1
@@ -630,20 +661,24 @@ class DXFLayoutDetector(DXFRenderer):
             return False
         if not self.updateConnectAndDisconnectWindowForNoCrossWindowLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateConnectAndDisconnectWindowForNoCrossWindowLine failed!")
+            print(
+                "\t updateConnectAndDisconnectWindowForNoCrossWindowLine failed!"
+            )
             return False
         if not self.updateUniformAndRandomDistWindowForConnectWindowLine():
             print("[ERROR][DXFLayoutDetector::detectLayout]")
-            print("\t updateUniformAndRandomDistWindowForConnectWindowLine failed!")
+            print(
+                "\t updateUniformAndRandomDistWindowForConnectWindowLine failed!"
+            )
             return False
 
         #  self.outputLabel([
-            #  "Valid",
-            #  "Horizontal", "Vertical",
-            #  "Cabinet", "CabinetBBox",
-            #  "Unit", "UnitCrossCluster",
-            #  "Layout", "LayoutCrossCluster",
-            #  "SingleConnect",
+        #  "Valid",
+        #  "Horizontal", "Vertical",
+        #  "Cabinet", "CabinetBBox",
+        #  "Unit", "UnitCrossCluster",
+        #  "Layout", "LayoutCrossCluster",
+        #  "SingleConnect",
         #  ])
 
         return True
@@ -678,7 +713,8 @@ class DXFLayoutDetector(DXFRenderer):
             return False
 
         if save_image_file_path is not None:
-            if not self.saveImage(save_image_file_path, compare_with_all_shape):
+            if not self.saveImage(save_image_file_path,
+                                  compare_with_all_shape):
                 print("[ERROR][DXFLayoutDetector::transDxfToJsonWithLayout]")
                 print("\t saveImage failed!")
                 print("\t", save_image_file_path)
@@ -727,7 +763,8 @@ class DXFLayoutDetector(DXFRenderer):
                     save_image_file_path = \
                         root.replace(dxf_folder_path, save_image_folder_path) + "/" + \
                         file_name[:-4] + ".png"
-                file_path_pair_list.append([dxf_file_path, save_json_file_path, save_image_file_path])
+                file_path_pair_list.append(
+                    [dxf_file_path, save_json_file_path, save_image_file_path])
 
         for_data = file_path_pair_list
         if print_progress:
@@ -738,7 +775,7 @@ class DXFLayoutDetector(DXFRenderer):
             dxf_file_path, save_json_file_path, save_image_file_path = file_path_list
 
             fsize = os.path.getsize(dxf_file_path)
-            fsize = fsize / float(1024*1024)
+            fsize = fsize / float(1024 * 1024)
             fsize = round(fsize, 2)
             print(dxf_file_path, "size is ", fsize, "MB")
             if fsize > 8:
@@ -750,84 +787,50 @@ class DXFLayoutDetector(DXFRenderer):
             tmp_file_path = save_json_file_path[:-5] + "_tmp.json"
 
             if not self.loadFile(dxf_file_path):
-                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print(
+                    "[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]"
+                )
                 print("\t loadFile failed!")
                 print("\t", dxf_file_path)
                 continue
                 #  return False
 
             if not self.detectLayout():
-                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print(
+                    "[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]"
+                )
                 print("\t detectLayout failed!")
                 return False
 
             if save_image_file_path is not None:
-                if not self.saveImage(save_image_file_path, compare_with_all_shape):
-                    print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                if not self.saveImage(save_image_file_path,
+                                      compare_with_all_shape):
+                    print(
+                        "[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]"
+                    )
                     print("\t saveImage failed!")
                     print("\t", save_image_file_path)
                     return False
 
             if not self.saveJson(tmp_file_path):
-                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print(
+                    "[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]"
+                )
                 print("\t saveJson failed!")
                 print("\t", tmp_file_path)
                 return False
 
             if not os.path.exists(tmp_file_path):
-                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print(
+                    "[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]"
+                )
                 print("\t trans dxf to json failed!")
                 return False
 
             if not renameFile(tmp_file_path, save_json_file_path):
-                print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
+                print(
+                    "[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]"
+                )
                 print("\t renameFile failed!")
                 return False
         return True
-
-def demo():
-    dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
-    save_json_file_path = "/home/chli/chLi/CAD/JSON/户型识别文件/1.json"
-    save_image_file_path = "/home/chli/chLi/CAD/Image/户型识别文件/1.png"
-    compare_with_all_shape = True
-
-    dxf_layout_detector = DXFLayoutDetector(dxf_file_path)
-    dxf_layout_detector.outputInfo()
-    dxf_layout_detector.saveImage(save_image_file_path, compare_with_all_shape)
-    dxf_layout_detector.render()
-    waitKey(0)
-    dxf_layout_detector.saveJson(save_json_file_path)
-    return True
-
-def demo_trans():
-    dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
-    save_json_file_path = "/home/chli/chLi/CAD/JSON/户型识别文件/1.json"
-    save_image_file_path = "/home/chli/chLi/CAD/Image/户型识别文件/1.png"
-    compare_with_all_shape = True
-
-    dxf_layout_detector = DXFLayoutDetector()
-    dxf_layout_detector.transDxfToJsonWithLayout(
-        dxf_file_path,
-        save_json_file_path,
-        save_image_file_path,
-        compare_with_all_shape
-    )
-    return True
-
-def demo_trans_folder():
-    dxf_folder_path = "/home/chli/chLi/CAD/DXF/House_1/"
-    save_json_folder_path = "/home/chli/chLi/CAD/JSON/House_1/"
-    save_image_folder_path = "/home/chli/chLi/CAD/Image/House_1/"
-    compare_with_all_shape = True
-    print_progress = True
-
-    dxf_layout_detector = DXFLayoutDetector()
-    dxf_layout_detector.transDxfFolderToJsonWithLayout(
-        dxf_folder_path,
-        save_json_folder_path,
-        save_image_folder_path,
-        compare_with_all_shape,
-        print_progress
-    )
-    return True
-

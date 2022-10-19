@@ -10,7 +10,9 @@ from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
 from autocad_manage.Method.path import createFileFolder, removeIfExist, renameFile
 
+
 class DWGLoader(object):
+
     def __init__(self):
         self.autocad = None
         self.doc = None
@@ -27,7 +29,8 @@ class DWGLoader(object):
         self.reset()
 
         try:
-            self.autocad = comtypes.client.GetActiveObject("AutoCAD.Application")
+            self.autocad = comtypes.client.GetActiveObject(
+                "AutoCAD.Application")
         except:
             print("[ERROR][DWGLoader::connectAutoCAD]")
             print("\t GetActiveObject failed! please start AutoCAD first!")
@@ -181,7 +184,10 @@ class DWGLoader(object):
             return False
         return True
 
-    def transDwgFolderToDxf(self, dwg_folder_path, save_folder_path, print_progress=False):
+    def transDwgFolderToDxf(self,
+                            dwg_folder_path,
+                            save_folder_path,
+                            print_progress=False):
         file_path_pair_list = []
         for root, _, files in os.walk(dwg_folder_path):
             for file_name in files:
@@ -244,22 +250,3 @@ class DWGLoader(object):
                 print("\t", save_file_path)
                 return False
         return True
-
-def demo():
-    dwg_file_path = \
-        "L:/CAD/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dwg"
-    save_file_path = \
-        "L:/CAD/output/DXF/House_1/20210223/C00000103/1e9a1ce8f2104613bfa4882cff473c42.dxf"
-
-    dwg_loader = DWGLoader()
-    dwg_loader.transDwgToDxf(dwg_file_path, save_file_path)
-    return True
-
-def demo_folder():
-    dwg_folder_path = "L:/CAD/House_1/"
-    save_folder_path = "L:/CAD/DXF/House_1/"
-
-    dwg_loader = DWGLoader()
-    dwg_loader.transDwgFolderToDxf(dwg_folder_path, save_folder_path, True)
-    return True
-

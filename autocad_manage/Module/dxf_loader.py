@@ -12,11 +12,13 @@ from autocad_manage.Config.base_config import BASE_CONFIG
 
 from autocad_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
 
+
 class DXFLoader(object):
+
     def __init__(self, dxf_file_path=None, config=BASE_CONFIG):
         self.load_depth_dict = {
-            "LWPOLYLINE" : -1,
-            "INSERT" : 1,
+            "LWPOLYLINE": -1,
+            "INSERT": 1,
         }
 
         self.config = config
@@ -104,14 +106,15 @@ class DXFLoader(object):
             print("\t this entity is a [" + dxftype + "], not a ARC!")
             return False
 
-
         center = dxf.center
         radius = dxf.radius
         start_angle = dxf.start_angle
         end_angle = dxf.end_angle
 
         flattening = entity.flattening(radius / 100)
-        flatten_point_list = [Point(point[0], point[1], point[2]) for point in flattening]
+        flatten_point_list = [
+            Point(point[0], point[1], point[2]) for point in flattening
+        ]
 
         # for 2-dim
         for i in range(len(flatten_point_list)):
@@ -162,7 +165,8 @@ class DXFLoader(object):
 
         self.undefined_entity_type_list.append(dxftype)
         print("[WARN][DXFLoader::loadEntity]")
-        print("\t load algo for [" + dxftype + "] not defined! will load as BaseShape!")
+        print("\t load algo for [" + dxftype +
+              "] not defined! will load as BaseShape!")
         return True
 
     def loadAllEntity(self):
@@ -180,10 +184,10 @@ class DXFLoader(object):
                 return False
 
         #  for circle in self.circle_list:
-            #  if not self.bbox.addBBoxPosition(circle.bbox):
-                #  print("[ERROR][DXFLoader::updateBBox]")
-                #  print("\t addBBoxPosition for circle failed!")
-                #  return False
+        #  if not self.bbox.addBBoxPosition(circle.bbox):
+        #  print("[ERROR][DXFLoader::updateBBox]")
+        #  print("\t addBBoxPosition for circle failed!")
+        #  return False
 
         for arc in self.arc_list:
             if not self.bbox.addBBoxPosition(arc.bbox):
@@ -284,7 +288,10 @@ class DXFLoader(object):
             return False
         return True
 
-    def transDxfFolderToJson(self, dxf_folder_path, save_folder_path, print_progress=False):
+    def transDxfFolderToJson(self,
+                             dxf_folder_path,
+                             save_folder_path,
+                             print_progress=False):
         file_path_pair_list = []
         for root, _, files in os.walk(dxf_folder_path):
             for file_name in files:
@@ -386,7 +393,7 @@ class DXFLoader(object):
             self.print_entity(entity, debug)
 
         #  for entity in self.msp.query("LINE"):
-            #  self.print_entity(entity, True)
+        #  self.print_entity(entity, True)
         return True
 
     def outputLayout(self):
@@ -417,7 +424,8 @@ class DXFLoader(object):
         return label_dict
 
     def outputLabel(self, ignore_label_list=[]):
-        line_label_dict = self.getShapeListLabelDict(self.line_list, ignore_label_list)
+        line_label_dict = self.getShapeListLabelDict(self.line_list,
+                                                     ignore_label_list)
         print("Line Label :")
         for key in line_label_dict.keys():
             print("\t", key, line_label_dict[key])
@@ -446,22 +454,3 @@ class DXFLoader(object):
         print("====block====")
         self.outputBlock()
         return True
-
-def demo():
-    dxf_file_path = "/home/chli/chLi/CAD/DXF/户型识别文件/1.dxf"
-    save_json_file_path = "/home/chli/chLi/CAD/JSON/户型识别文件/1.json"
-
-    dxf_loader = DXFLoader(dxf_file_path)
-    dxf_loader.outputInfo()
-    dxf_loader.saveJson(save_json_file_path)
-    return True
-
-def demo_folder():
-    dxf_folder_path = "L:/CAD/DXF/户型识别文件/"
-    save_folder_path = "L:/CAD/JSON/户型识别文件/"
-    print_progress = True
-
-    dxf_loader = DXFLoader()
-    dxf_loader.transDxfFolderToJson(dxf_folder_path, save_folder_path, print_progress)
-    return True
-
