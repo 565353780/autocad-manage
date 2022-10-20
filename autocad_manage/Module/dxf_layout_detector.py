@@ -771,8 +771,8 @@ class DXFLayoutDetector(DXFRenderer):
             print("[INFO][DXFLayoutDetector::transDxfFolderToJsonWithLayout]")
             print("\t start trans dxf to json...")
             for_data = tqdm(file_path_pair_list)
-        for file_path_list in for_data:
-            dxf_file_path, save_json_file_path, save_image_file_path = file_path_list
+        for file_path_pair in for_data:
+            dxf_file_path, save_json_file_path, save_image_file_path = file_path_pair
 
             fsize = os.path.getsize(dxf_file_path)
             fsize = fsize / float(1024 * 1024)
