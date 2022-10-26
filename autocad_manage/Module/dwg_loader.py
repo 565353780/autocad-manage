@@ -86,7 +86,7 @@ class DWGLoader(object):
             print("\t", dwg_file_path)
             return False
 
-        cmd = "FILEDIA " + "0 "
+        cmd = "FILEDIA " + "0\n"
         if not self.sendCMD(cmd):
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t set FILEDIA to 0 failed!")
@@ -132,7 +132,7 @@ class DWGLoader(object):
             print("\t saveAs dwg failed!")
             return False
 
-        cmd = "CLOSE "
+        cmd = "CLOSE\n"
         if not self.sendCMD(cmd):
             print("[ERROR][DWGLoader::closeDoc]")
             print("\t sendCMD failed!")
