@@ -16,9 +16,11 @@ def demo():
 
 
 def demo_folder():
-    dwg_folder_path = "L:/CAD/House_1/"
-    save_folder_path = "L:/CAD/DXF/House_1/"
 
-    dwg_loader = DWGLoader()
-    dwg_loader.transDwgFolderToDxf(dwg_folder_path, save_folder_path, True)
+    for i in range(4):
+        dwg_folder_path = "L:/CAD/House_" + str(i) + "/"
+        save_folder_path = "L:/CAD/DXF/House_" + str(i) + "/"
+
+        dwg_loader = DWGLoader()
+        dwg_loader.transDwgFolderToDxf(dwg_folder_path, save_folder_path, True)
     return True
