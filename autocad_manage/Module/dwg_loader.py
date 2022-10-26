@@ -217,23 +217,29 @@ class DWGLoader(object):
                 print("\t", dwg_file_path)
                 continue
 
+            print("debug: start fixError")
             if not self.fixError():
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t fixError failed!")
                 print("\t", dwg_file_path)
                 return False
+            print("debug: finish fixError")
 
+            print("debug: start saveAs dxf")
             if not self.saveAs(tmp_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t saveAs failed!")
                 print("\t", tmp_file_path)
                 return False
+            print("debug: finish saveAs dxf")
 
+            print("debug: start closeDoc")
             if not self.closeDoc():
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t closeDoc failed!")
                 print("\t", dwg_file_path)
                 return False
+            print("debug: finish closeDoc")
 
             if not os.path.exists(tmp_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
