@@ -17,7 +17,7 @@ def demo():
 
 def demo_folder():
 
-    for i in range(4):
+    for i in range(1, 5):
         dwg_folder_path = "L:/CAD/House_" + str(i) + "/"
         save_folder_path = "L:/CAD/DXF/House_" + str(i) + "/"
 

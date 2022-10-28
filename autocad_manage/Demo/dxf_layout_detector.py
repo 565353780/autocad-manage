@@ -36,16 +36,17 @@ def demo_trans():
 
 
 def demo_trans_folder():
-    dxf_folder_path = "/home/chli/chLi/CAD/DXF/House_1/"
-    save_json_folder_path = "/home/chli/chLi/CAD/JSON/House_1/"
-    save_image_folder_path = "/home/chli/chLi/CAD/Image/House_1/"
-    compare_with_all_shape = True
-    print_progress = True
+    for i in range(1, 5):
+        dxf_folder_path = "/home/chli/chLi/CAD/DXF/House_" + str(i) + "/"
+        save_json_folder_path = "/home/chli/chLi/CAD/JSON/House_" + str(i) + "/"
+        save_image_folder_path = "/home/chli/chLi/CAD/Image/House_" + str(i) + "/"
+        compare_with_all_shape = True
+        print_progress = True
 
-    dxf_layout_detector = DXFLayoutDetector()
-    dxf_layout_detector.transDxfFolderToJsonWithLayout(dxf_folder_path,
-                                                       save_json_folder_path,
-                                                       save_image_folder_path,
-                                                       compare_with_all_shape,
-                                                       print_progress)
+        dxf_layout_detector = DXFLayoutDetector()
+        dxf_layout_detector.transDxfFolderToJsonWithLayout(dxf_folder_path,
+                                                           save_json_folder_path,
+                                                           save_image_folder_path,
+                                                           compare_with_all_shape,
+                                                           print_progress)
     return True
