@@ -93,12 +93,16 @@ class DXFRenderer(DXFLoader):
         if render_scale == float("inf"):
             render_scale = 1.0
 
-        if not diff_point.isFinite():
-            self.render_image_width = self.image_width
-            self.render_image_height = self.image_height
-        else:
+        if diff_point.isFinite():
             self.render_image_width = int(diff_point.x * render_scale)
             self.render_image_height = int(diff_point.y * render_scale)
+        else:
+            self.render_image_width = self.image_width
+            self.render_image_height = self.image_height
+
+        self.render_image_width = max(1, self.render_image_width)
+        self.render_image_height = max(1, self.render_image_height)
+
         return True
 
     def getImagePosition(self, world_potision):
