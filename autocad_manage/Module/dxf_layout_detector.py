@@ -777,7 +777,7 @@ class DXFLayoutDetector(DXFRenderer):
             fsize = os.path.getsize(dxf_file_path)
             fsize = fsize / float(1024 * 1024)
             fsize = round(fsize, 2)
-            print(dxf_file_path, "size is ", fsize, "MB")
+            #  print(dxf_file_path, "size is ", fsize, "MB")
             if fsize > 8:
                 continue
 
