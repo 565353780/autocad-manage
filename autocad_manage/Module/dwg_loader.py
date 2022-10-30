@@ -5,7 +5,7 @@ import os
 import comtypes.client
 from time import time
 from tqdm import tqdm
-from func_timeout import func_set_timeout
+import timeout_decorator
 
 from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
@@ -86,16 +86,9 @@ class DWGLoader(object):
             break
         return True
 
-    @func_set_timeout(30)
+    @timeout_decorator.timeout(30)
     def callOpen(self, dwg_file_path):
         try:
-            self.connectAutoCAD()
-
-            if self.autocad is None:
-                print("[ERROR][DWGLoader::callOpen]")
-                print("\t autocad not connected!")
-                return False
-
             self.doc = self.autocad.Documents.Open(dwg_file_path)
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
@@ -111,16 +104,18 @@ class DWGLoader(object):
             print("\t", dwg_file_path)
             return False
 
+        if self.autocad is None:
+            print("[ERROR][DWGLoader::callOpen]")
+            print("\t autocad not connected!")
+            return False
+
         try:
-            success = self.callOpen(dwg_file_path)
-            self.connectAutoCAD()
-            if not success:
+            if not self.callOpen(dwg_file_path):
                 return False
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t callOpen time out!")
             print("\t", dwg_file_path)
-            self.connectAutoCAD()
             return False
 
         cmd = "FILEDIA " + "0\n"
