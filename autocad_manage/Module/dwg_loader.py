@@ -3,6 +3,7 @@
 
 import os
 import comtypes.client
+from time import time
 from tqdm import tqdm
 
 from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
@@ -17,6 +18,8 @@ class DWGLoader(object):
         self.doc = None
 
         self.connectAutoCAD()
+
+        self.debug = True
         return
 
     def reset(self):
@@ -38,31 +41,47 @@ class DWGLoader(object):
         self.autocad.Visible = True
         return True
 
-    def sendCMD(self, cmd):
+    def sendCMD(self, cmd, max_wait_second=30):
         doc = None
 
+        start = time()
         first_print = False
         while doc is None:
             try:
                 doc = self.autocad.activedocument
             except:
+                wait_second = time() - start
+                if wait_second > max_wait_second:
+                    print("[ERROR][DWGLoader::sendCMD]")
+                    print("\t wait time out to select activedocument!")
+                    return False
+
                 if first_print:
                     continue
                 first_print = True
                 print("[WARN][DWGLoader::sendCMD]")
                 print("\t select activedocument failed! start retry...")
 
+        start = time()
         first_print = False
         while True:
             try:
                 doc.SendCommand(cmd)
             except:
+                wait_second = time() - start
+                if wait_second > max_wait_second:
+                    print("[ERROR][DWGLoader::sendCMD]")
+                    print("\t wait time out to send:")
+                    print("\t", cmd)
+                    return False
+
                 if first_print:
                     continue
                 first_print = True
                 print("[WARN][DWGLoader::sendCMD]")
                 print("\t SendCommand failed! start retry...")
                 print("\t", cmd)
+                continue
             break
         return True
 
@@ -211,24 +230,36 @@ class DWGLoader(object):
 
             tmp_file_path = save_file_path[:-4] + "_tmp.dxf"
 
+            if self.debug:
+                print("[INFO][DWGLoader::transDwgFolderToDxf]")
+                print("\t start openDWGFile... 1/4")
             if not self.openDWGFile(dwg_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t openDWGFile failed! skip this one!")
                 print("\t", dwg_file_path)
                 continue
 
+            if self.debug:
+                print("[INFO][DWGLoader::transDwgFolderToDxf]")
+                print("\t start fixError... 2/4")
             if not self.fixError():
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t fixError failed!")
                 print("\t", dwg_file_path)
                 return False
 
+            if self.debug:
+                print("[INFO][DWGLoader::transDwgFolderToDxf]")
+                print("\t start saveAs... 3/4")
             if not self.saveAs(tmp_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t saveAs failed!")
                 print("\t", tmp_file_path)
                 return False
 
+            if self.debug:
+                print("[INFO][DWGLoader::transDwgFolderToDxf]")
+                print("\t start closeDoc... 4/4")
             if not self.closeDoc():
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t closeDoc failed!")
