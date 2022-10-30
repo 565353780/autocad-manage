@@ -14,7 +14,6 @@ from autocad_manage.Method.path import createFileFolder, removeIfExist, renameFi
 
 
 class DWGLoader(object):
-
     def __init__(self):
         self.autocad = None
         self.doc = None
@@ -54,7 +53,6 @@ class DWGLoader(object):
                 if wait_second > max_wait_second:
                     print("[ERROR][DWGLoader::sendCMD]")
                     print("\t wait time out to select activedocument!")
-                    CoUninitialize()
                     return False
 
                 if first_print:
@@ -74,7 +72,6 @@ class DWGLoader(object):
                     print("[ERROR][DWGLoader::sendCMD]")
                     print("\t wait time out to send:")
                     print("\t", cmd)
-                    CoUninitialize()
                     return False
 
                 if first_print:
@@ -85,16 +82,15 @@ class DWGLoader(object):
                 print("\t", cmd)
                 continue
             break
-
-        CoUninitialize()
         return True
 
     @func_set_timeout(30)
     def callOpen(self, dwg_file_path):
         try:
             CoInitialize()
-            self.connectAutoCAD()
-            self.doc = self.autocad.Documents.Open(dwg_file_path)
+            autocad = comtypes.client.GetActiveObject("AutoCAD.Application")
+            autocad.Visible = True
+            self.doc = autocad.Documents.Open(dwg_file_path)
             CoUninitialize()
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
@@ -113,14 +109,12 @@ class DWGLoader(object):
 
         try:
             success = self.callOpen(dwg_file_path)
-            self.connectAutoCAD()
             if not success:
                 return False
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t callOpen time out!")
             print("\t", dwg_file_path)
-            self.connectAutoCAD()
             return False
 
         cmd = "FILEDIA " + "0\n"
