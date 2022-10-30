@@ -89,6 +89,7 @@ class DWGLoader(object):
     @func_set_timeout(30)
     def callOpen(self, dwg_file_path):
         try:
+            self.connectAutoCAD()
             self.doc = self.autocad.Documents.Open(dwg_file_path)
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
