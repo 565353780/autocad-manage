@@ -5,7 +5,7 @@ import os
 import comtypes.client
 from time import time
 from tqdm import tqdm
-from multiprocessing import Process
+from func_timeout import func_set_timeout
 
 from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
@@ -86,6 +86,11 @@ class DWGLoader(object):
             break
         return True
 
+    @func_set_timeout(30)
+    def callOpen(self, dwg_file_path):
+        self.autocad.Documents.Open(dwg_file_path)
+        return True
+
     def openDWGFile(self, dwg_file_path):
         if not os.path.exists(dwg_file_path):
             print("[ERROR][DWGLoader::openDWGFile]")
@@ -99,9 +104,7 @@ class DWGLoader(object):
             return False
 
         try:
-            p = Process(target=self.autocad.Documents.Open, args=(dwg_file_path, ))
-            p.start()
-            p.join(30)
+            self.callOpen(dwg_file_path)
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t Open failed! please check if file exist!")
