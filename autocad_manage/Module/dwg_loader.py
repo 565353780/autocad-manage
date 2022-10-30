@@ -46,6 +46,8 @@ class DWGLoader(object):
     def sendCMD(self, cmd, max_wait_second=30):
         self.connectAutoCAD()
 
+        doc = None
+
         start = time()
         first_print = False
         while doc is None:
