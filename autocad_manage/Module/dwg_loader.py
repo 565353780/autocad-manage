@@ -30,8 +30,6 @@ class DWGLoader(object):
     def connectAutoCAD(self):
         self.reset()
 
-        CoInitialize()
-
         try:
             self.autocad = comtypes.client.GetActiveObject(
                 "AutoCAD.Application")
@@ -44,8 +42,6 @@ class DWGLoader(object):
         return True
 
     def sendCMD(self, cmd, max_wait_second=30):
-        self.connectAutoCAD()
-
         doc = None
 
         start = time()
@@ -96,16 +92,16 @@ class DWGLoader(object):
     @func_set_timeout(30)
     def callOpen(self, dwg_file_path):
         try:
+            CoInitialize()
             self.connectAutoCAD()
             self.doc = self.autocad.Documents.Open(dwg_file_path)
+            CoUninitialize()
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t Open failed! please check if file exist!")
             print("\t", dwg_file_path)
             CoUninitialize()
             return False
-
-        CoUninitialize()
         return True
 
     def openDWGFile(self, dwg_file_path):
@@ -116,12 +112,15 @@ class DWGLoader(object):
             return False
 
         try:
-            if not self.callOpen(dwg_file_path):
+            success = self.callOpen(dwg_file_path)
+            self.connectAutoCAD()
+            if not success:
                 return False
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t callOpen time out!")
             print("\t", dwg_file_path)
+            self.connectAutoCAD()
             return False
 
         cmd = "FILEDIA " + "0\n"
