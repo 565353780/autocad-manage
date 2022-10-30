@@ -90,6 +90,12 @@ class DWGLoader(object):
     def callOpen(self, dwg_file_path):
         try:
             self.connectAutoCAD()
+
+            if self.autocad is None:
+                print("[ERROR][DWGLoader::callOpen]")
+                print("\t autocad not connected!")
+                return False
+
             self.doc = self.autocad.Documents.Open(dwg_file_path)
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
@@ -105,18 +111,16 @@ class DWGLoader(object):
             print("\t", dwg_file_path)
             return False
 
-        if self.autocad is None:
-            print("[ERROR][DWGLoader::openDWGFile]")
-            print("\t autocad not connected!")
-            return False
-
         try:
-            if not self.callOpen(dwg_file_path):
+            success = self.callOpen(dwg_file_path)
+            self.connectAutoCAD()
+            if not success:
                 return False
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t callOpen time out!")
             print("\t", dwg_file_path)
+            self.connectAutoCAD()
             return False
 
         cmd = "FILEDIA " + "0\n"
