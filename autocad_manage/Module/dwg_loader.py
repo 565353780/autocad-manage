@@ -86,7 +86,7 @@ class DWGLoader(object):
             break
         return True
 
-    @func_set_timeout(30)
+    @func_set_timeout(30, True)
     def callOpen(self, dwg_file_path):
         try:
             self.autocad.Documents.Open(dwg_file_path)
@@ -110,7 +110,8 @@ class DWGLoader(object):
             return False
 
         try:
-            self.callOpen(dwg_file_path)
+            if not self.callOpen(dwg_file_path):
+                return False
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t callOpen time out!")
