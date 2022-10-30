@@ -5,7 +5,8 @@ import os
 import comtypes.client
 from time import time
 from tqdm import tqdm
-import timeout_decorator
+from func_timeout import func_set_timeout
+from pythoncom import CoInitialize, CoUninitialize
 
 from autocad_manage.Config.path import TMP_SAVE_FOLDER_PATH
 
@@ -86,15 +87,21 @@ class DWGLoader(object):
             break
         return True
 
-    @timeout_decorator.timeout(30)
+    @func_set_timeout(30)
     def callOpen(self, dwg_file_path):
+        print("in callOpen!")
         try:
+            print("callOpen::start call Open!")
+            CoInitialize()
+            self.connectAutoCAD()
             self.doc = self.autocad.Documents.Open(dwg_file_path)
+            CoUninitialize()
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t Open failed! please check if file exist!")
             print("\t", dwg_file_path)
             return False
+        print("callOpen::out!")
         return True
 
     def openDWGFile(self, dwg_file_path):
