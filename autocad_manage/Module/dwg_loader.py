@@ -20,8 +20,6 @@ class DWGLoader(object):
         self.doc = None
 
         self.connectAutoCAD()
-
-        self.debug = True
         return
 
     def reset(self):
@@ -31,6 +29,8 @@ class DWGLoader(object):
 
     def connectAutoCAD(self):
         self.reset()
+
+        CoInitialize()
 
         try:
             self.autocad = comtypes.client.GetActiveObject(
@@ -44,7 +44,7 @@ class DWGLoader(object):
         return True
 
     def sendCMD(self, cmd, max_wait_second=30):
-        doc = None
+        self.connectAutoCAD()
 
         start = time()
         first_print = False
@@ -56,6 +56,7 @@ class DWGLoader(object):
                 if wait_second > max_wait_second:
                     print("[ERROR][DWGLoader::sendCMD]")
                     print("\t wait time out to select activedocument!")
+                    CoUninitialize()
                     return False
 
                 if first_print:
@@ -75,6 +76,7 @@ class DWGLoader(object):
                     print("[ERROR][DWGLoader::sendCMD]")
                     print("\t wait time out to send:")
                     print("\t", cmd)
+                    CoUninitialize()
                     return False
 
                 if first_print:
@@ -85,23 +87,23 @@ class DWGLoader(object):
                 print("\t", cmd)
                 continue
             break
+
+        CoUninitialize()
         return True
 
     @func_set_timeout(30)
     def callOpen(self, dwg_file_path):
-        print("in callOpen!")
         try:
-            print("callOpen::start call Open!")
-            CoInitialize()
             self.connectAutoCAD()
             self.doc = self.autocad.Documents.Open(dwg_file_path)
-            CoUninitialize()
         except:
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t Open failed! please check if file exist!")
             print("\t", dwg_file_path)
+            CoUninitialize()
             return False
-        print("callOpen::out!")
+
+        CoUninitialize()
         return True
 
     def openDWGFile(self, dwg_file_path):
@@ -109,11 +111,6 @@ class DWGLoader(object):
             print("[ERROR][DWGLoader::openDWGFile]")
             print("\t dwg_file not exist!")
             print("\t", dwg_file_path)
-            return False
-
-        if self.autocad is None:
-            print("[ERROR][DWGLoader::callOpen]")
-            print("\t autocad not connected!")
             return False
 
         try:
@@ -250,36 +247,24 @@ class DWGLoader(object):
 
             tmp_file_path = save_file_path[:-4] + "_tmp.dxf"
 
-            if self.debug:
-                print("[INFO][DWGLoader::transDwgFolderToDxf]")
-                print("\t start openDWGFile... 1/4")
             if not self.openDWGFile(dwg_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t openDWGFile failed! skip this one!")
                 print("\t", dwg_file_path)
                 continue
 
-            if self.debug:
-                print("[INFO][DWGLoader::transDwgFolderToDxf]")
-                print("\t start fixError... 2/4")
             if not self.fixError():
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t fixError failed!")
                 print("\t", dwg_file_path)
                 return False
 
-            if self.debug:
-                print("[INFO][DWGLoader::transDwgFolderToDxf]")
-                print("\t start saveAs... 3/4")
             if not self.saveAs(tmp_file_path):
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t saveAs failed!")
                 print("\t", tmp_file_path)
                 return False
 
-            if self.debug:
-                print("[INFO][DWGLoader::transDwgFolderToDxf]")
-                print("\t start closeDoc... 4/4")
             if not self.closeDoc():
                 print("[ERROR][DWGLoader::transDwgFolderToDxf]")
                 print("\t closeDoc failed!")
