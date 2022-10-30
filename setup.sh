@@ -1,2 +1,2 @@
-pip install ezdxf opencv-python tqdm
+pip install ezdxf opencv-python tqdm func_timeout
 
