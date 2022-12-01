@@ -19,6 +19,8 @@ class DWGLoader(object):
         self.doc = None
 
         self.connectAutoCAD()
+
+        self.warn_output = False
         return
 
     def reset(self):
@@ -58,8 +60,9 @@ class DWGLoader(object):
                 if first_print:
                     continue
                 first_print = True
-                print("[WARN][DWGLoader::sendCMD]")
-                print("\t select activedocument failed! start retry...")
+                if self.warn_output:
+                    print("[WARN][DWGLoader::sendCMD]")
+                    print("\t select activedocument failed! start retry...")
 
         start = time()
         first_print = False
@@ -77,9 +80,10 @@ class DWGLoader(object):
                 if first_print:
                     continue
                 first_print = True
-                print("[WARN][DWGLoader::sendCMD]")
-                print("\t SendCommand failed! start retry...")
-                print("\t", cmd)
+                if self.warn_output:
+                    print("[WARN][DWGLoader::sendCMD]")
+                    print("\t SendCommand failed! start retry...")
+                    print("\t", cmd)
                 continue
             break
         return True
