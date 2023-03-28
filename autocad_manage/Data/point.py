@@ -3,7 +3,9 @@
 
 from autocad_manage.Data.base_shape import BaseShape
 
+
 class Point(BaseShape):
+
     def __init__(self, x=0, y=0, z=0):
         super(Point, self).__init__()
         self.x = x
@@ -24,6 +26,9 @@ class Point(BaseShape):
             return False
         return True
 
+    def toList(self):
+        return [self.x, self.y, self.z]
+
     def outputInfo(self, info_level=0):
         line_start = "\t" * info_level
         print(line_start + "[Point]")
@@ -32,4 +37,3 @@ class Point(BaseShape):
               str(self.y) + ", " + \
               str(self.z) + "]")
         return True
-

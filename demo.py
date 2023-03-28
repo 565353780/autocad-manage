@@ -14,11 +14,11 @@ from autocad_manage.Demo.dxf_layout_detector import \
     demo_trans_folder as layout_trans_folder_demo
 
 if __name__ == "__main__":
-    #  dxf_load_demo()
+    dxf_load_demo()
     #  dxf_load_folder_demo()
 
     #  dxf_render_demo()
 
     #  layout_detect_demo()
     #  layout_trans_demo()
-    layout_trans_folder_demo()
+    #  layout_trans_folder_demo()

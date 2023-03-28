@@ -7,7 +7,9 @@ from autocad_manage.Data.base_shape import BaseShape
 from autocad_manage.Data.point import Point
 from autocad_manage.Data.bbox import BBox
 
+
 class Line(BaseShape):
+
     def __init__(self, start_point=Point(), end_point=Point()):
         super(Line, self).__init__()
         self.start_point = start_point
@@ -113,4 +115,3 @@ class Line(BaseShape):
         self.diff_point.outputInfo(info_level + 1)
         print(line_start + "\t k =", self.k)
         return True
-

@@ -3,7 +3,9 @@
 
 from autocad_manage.Data.bbox import BBox
 
+
 class LineCluster(object):
+
     def __init__(self, line_list=[]):
         self.line_list = []
         self.bbox = BBox()
@@ -29,4 +31,3 @@ class LineCluster(object):
         bbox_list = [line.bbox for line in line_list]
         self.bbox.addBBoxListPosition(bbox_list)
         return True
-
