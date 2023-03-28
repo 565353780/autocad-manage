@@ -5,8 +5,11 @@ import os
 import json
 import ezdxf
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+from ezdxf.addons.drawing import RenderContext, Frontend
+from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 
-from autocad_manage.Method.path import createFileFolder, renameFile
+from autocad_manage.Method.path import createFileFolder, renameFile, removeIfExist
 
 from autocad_manage.Config.base_config import BASE_CONFIG
 
@@ -217,6 +220,53 @@ class DXFLoader(object):
             print("[ERROR][DXFLoader::loadFile]")
             print("\t updateBBox failed!")
             return False
+        return True
+
+    def rebuildDXF(self, version='R2018'):
+        doc = ezdxf.new(version)
+        msp = doc.modelspace()
+
+        for line in self.line_list:
+            msp.add_line(line.start_point.toList(), line.end_point.toList())
+
+        for circle in self.circle_list:
+            msp.add_circle(circle.center.toList(), circle.radius)
+
+        for arc in self.arc_list:
+            msp.add_arc(arc.center.toList(), arc.radius, arc.start_angle,
+                        arc.end_angle)
+        return doc
+
+    def saveDXF(self, save_file_path, version='R2018'):
+        createFileFolder(save_file_path)
+        removeIfExist(save_file_path)
+
+        tmp_save_file_path = save_file_path[:-4] + '_tmp.dxf'
+
+        doc = self.rebuildDXF(version)
+
+        doc.saveas(tmp_save_file_path)
+
+        renameFile(tmp_save_file_path, save_file_path)
+        return True
+
+    def saveSVG(self, save_file_path, version='R2018'):
+        createFileFolder(save_file_path)
+        removeIfExist(save_file_path)
+
+        tmp_save_file_path = save_file_path[:-4] + '_tmp.svg'
+
+        doc = self.rebuildDXF(version)
+
+        fig = plt.figure()
+        ax = fig.add_axes([0, 0, 1, 1])
+        ctx = RenderContext(doc)
+        out = MatplotlibBackend(ax)
+        Frontend(ctx, out).draw_layout(doc.modelspace(), finalize=True)
+        #  fig.savefig(tmp_png_file_path, dpi=300)
+        fig.savefig(tmp_save_file_path)
+
+        renameFile(tmp_save_file_path, save_file_path)
         return True
 
     def saveJson(self, save_json_file_path):
