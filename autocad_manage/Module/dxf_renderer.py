@@ -68,7 +68,7 @@ class DXFRenderer(DXFLoader):
         self.is_reverse_y = is_reverse_y
         return True
 
-    def updateImageTrans(self):
+    def updateImageTrans(self, fix_image_size=True):
         min_point = self.bbox.min_point
         self.trans_point = Point(-min_point.x, -min_point.y, -min_point.z)
 
@@ -93,7 +93,10 @@ class DXFRenderer(DXFLoader):
         if render_scale == float("inf"):
             render_scale = 1.0
 
-        if diff_point.isFinite():
+        if fix_image_size:
+            self.render_image_width = self.image_width
+            self.render_image_height = self.image_height
+        elif diff_point.isFinite():
             self.render_image_width = int(diff_point.x * render_scale)
             self.render_image_height = int(diff_point.y * render_scale)
         else:
@@ -225,8 +228,8 @@ class DXFRenderer(DXFLoader):
         self.drawArcList(self.arc_list, self.arc_color)
         return True
 
-    def renderFrameWithAllShape(self):
-        if not self.updateImageTrans():
+    def renderFrameWithAllShape(self, fix_image_size=True):
+        if not self.updateImageTrans(fix_image_size):
             print("[ERROR][DXFRenderer::renderFrameWithAllShape]")
             print("\t updateImageTrans failed!")
             return False
@@ -250,14 +253,14 @@ class DXFRenderer(DXFLoader):
         self.drawArcList(self.arc_list, self.arc_color)
         return True
 
-    def renderFrame(self, compare_with_all_shape=False):
+    def renderFrame(self, compare_with_all_shape=False, fix_image_size=True):
         if compare_with_all_shape:
-            if not self.renderFrameWithAllShape():
+            if not self.renderFrameWithAllShape(fix_image_size):
                 print("[ERROR][DXFRenderer::renderFrame]")
                 print("\t renderFrameWithAllShape failed!")
                 return False
 
-        if not self.updateImageTrans():
+        if not self.updateImageTrans(fix_image_size):
             print("[ERROR][DXFRenderer::renderFrame]")
             print("\t updateImageTrans failed!")
             return False
@@ -294,8 +297,8 @@ class DXFRenderer(DXFLoader):
         cv2.imwrite(save_image_file_path, self.image, image_param)
         return True
 
-    def render(self):
-        if not self.renderFrame():
+    def render(self, compare_with_all_shape=False, fix_image_size=True):
+        if not self.renderFrame(compare_with_all_shape, fix_image_size):
             print("[ERROR][DXFRenderer::render]")
             print("\t renderFrame failed!")
             return False
