@@ -53,6 +53,10 @@ class DXFLoader(object):
         self.undefined_entity_type_list = []
         return True
 
+    def size(self):
+        size = len(self.line_list) + len(self.circle_list) + len(self.arc_list)
+        return size
+
     def loadBaseShapeEntity(self, entity):
         new_base_shape = BaseShape()
         new_base_shape.type = entity.dxftype()
