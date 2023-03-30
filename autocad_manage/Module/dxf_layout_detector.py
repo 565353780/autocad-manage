@@ -684,15 +684,33 @@ class DXFLayoutDetector(DXFRenderer):
         return True
 
     def drawShape(self):
-        self.drawLineLabel("ConnectLayout", [255, 255, 255])
+        mode_list = ['all', 'wall']
+        mode = 'wall'
 
-        self.drawArcLabel("Door", [0, 0, 255])
-        self.drawLineLabel("Door", [0, 0, 255])
+        assert mode in mode_list
 
-        self.drawLineLabel("Cabinet", [255, 255, 0])
-        self.drawLineLabel("CabinetBBox", [255, 255, 0])
+        if mode == 'all':
+            self.drawLineLabel("ConnectLayout", [255, 255, 255])
 
-        self.drawLineLabel("UniformDistWindow", [0, 255, 0])
+            self.drawArcLabel("Door", [0, 0, 255])
+            self.drawLineLabel("Door", [0, 0, 255])
+
+            self.drawLineLabel("Cabinet", [255, 255, 0])
+            self.drawLineLabel("CabinetBBox", [255, 255, 0])
+
+            self.drawLineLabel("UniformDistWindow", [0, 255, 0])
+
+        elif mode == 'wall':
+            self.drawLineLabel("ConnectLayout", [255, 255, 255])
+
+            self.drawArcLabel("Door", [0, 0, 0])
+            self.drawLineLabel("Door", [0, 0, 0])
+
+            self.drawLineLabel("Cabinet", [0, 0, 0])
+            self.drawLineLabel("CabinetBBox", [0, 0, 0])
+
+            self.drawLineLabel("UniformDistWindow", [0, 0, 0])
+            self.drawLineLabel("RandomDistWindow", [0, 0, 0])
         return True
 
     def transDxfToJsonWithLayout(self,
