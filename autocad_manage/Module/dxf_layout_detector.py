@@ -685,7 +685,7 @@ class DXFLayoutDetector(DXFRenderer):
 
     def drawShape(self):
         mode_list = ['all', 'wall']
-        mode = 'wall'
+        mode = 'all'
 
         assert mode in mode_list
 
