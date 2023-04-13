@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import json
-import ezdxf
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-from ezdxf.addons.drawing import RenderContext, Frontend
-from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
+import os
 
-from autocad_manage.Method.path import createFileFolder, renameFile, removeIfExist
+import ezdxf
+import matplotlib.pyplot as plt
+from ezdxf.addons.drawing import Frontend, RenderContext
+from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
+from tqdm import tqdm
 
 from autocad_manage.Config.base_config import BASE_CONFIG
-
-from autocad_manage.Data.shape import BaseShape, Point, Line, Circle, Arc, BBox
+from autocad_manage.Data.shape import Arc, BaseShape, BBox, Circle, Line, Point
+from autocad_manage.Method.path import (createFileFolder, removeIfExist,
+                                        renameFile)
 
 
 class DXFLoader(object):
@@ -119,13 +119,14 @@ class DXFLoader(object):
         end_angle = dxf.end_angle
 
         flattening = entity.flattening(radius / 100)
-        flatten_point_list = [
-            Point(point[0], point[1], point[2]) for point in flattening
-        ]
 
-        # for 2-dim
-        for i in range(len(flatten_point_list)):
-            flatten_point_list[i].z = 0
+        #  flatten_point_list = [Point(point[0], point[1], point[2]) for point in flattening]
+        #  for i in range(len(flatten_point_list)):
+        #  flatten_point_list[i].z = 0
+
+        flatten_point_list = [
+            Point(point[0], point[1], 0) for point in flattening
+        ]
 
         new_arc = Arc(Point(center[0], center[1], center[2]), radius,
                       start_angle, end_angle, flatten_point_list)
